@@ -115,9 +115,7 @@ app.post('/add', function(요청, 응답){
         // console.log('총게시물갯수는', 총게시물갯수);
       })
     })
-  });
-
-  
+  });  
 })
 
 // cRud 기능: /list 경로로 GET 요청하면 응답.render 코드에 담긴 ejs 파일을 렌더링하여 MongoDB 데이터들로 꾸며진 html을 보여줌
