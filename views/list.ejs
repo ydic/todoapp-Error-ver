@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Todo App</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Write</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">임시</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <h4 class="ml-2 my-3">서버에서 가져온 할일 리스트</h4>
+
+    <ul class="list-group">
+      <!-- [ EJS 문법 ] express의 응답.render 통해서 ejs로 넘어온 결과 데이터를 <% %>, <%= %> 문법으로 받아서 보여줌 -->
+      <!-- EJS <% %> 문법으로 for문 개폐부를 감싸고 반복문 내부에서도 <%= %> 문법으로 데이터 보여줌-->
+      <% for (let i = 0; i < postResult.length; i++) { %>
+
+        <!--  -->
+        <li class="list-group-item">
+
+          <!-- 삭제 버튼이 클릭 이벤트가 발생한 li 태그를 특정하고 식별하기 위해 EJS 문법 적용해 브라우저에 글번호 값을 직접 노출(?)하거나 html li태그 data-작명: "<%= %>" 속성(주의: 따옴표 필수)으로 숨겨서 동작시키거나 -->
+          
+          <p>글번호: <%= postResult[i]._id %></p>
+
+          <h4>할일 제목: <%= postResult[i].제목 %></h4>
+          <p>할일 날짜: <%= postResult[i].날짜 %></p>
+          
+          <!-- 주의: button 태그 눌러서 클릭 이벤트 발생하면 e.target.dataset.li-id 찾으려는 의도였음에도 data-listId 속성을 li 태그에 입력해서 클릭 이벤트 값 제대로 감지되지 않는 시행착호 겪었음-->
+          <!-- 주의: 올바른 문법은 data-소문자(언더바 가능)= / 틀린 문법은 data-카멜케이스와 마이너스 기호와 콜론(data-list--Id:) -->
+          <button class="delete" data-li_tag_data_id= "<%= postResult[i]._id %>">삭제</button>
+        </li>
+      <% } %>
+    </ul>
+
+        <!-- 
+        [ EJS / HTML 문법 ] 서버에 직접적으로 DELETE, PUT 요청 불가 (GET, POST 요청만 가능) 
+        HTML 상에서 DELETE 요청을 위한 대안책: 
+        (1) method-override 라이브러리 이용(Node JS환경, form에서 DELETE요청 가능해짐)
+        (2) JavaScript AJAX 이용 (새로고침 없이 서버통신을 도와주는 JavaScript 문법)
+        -->
+    
+        <!-- HTML에서 서버에 DELETE 요청 보내기 위해 JQuery 문법 기반으로 AJAX 요청 코드를 작성해야 함 JQuery Min 버전을 CDN으로 연동해야 하므로 부트스트랩 기본값인 JQuery Slim Min 연동 코드는 주석처리함  -->
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    
+
+        <!-- JQuery Min 버전(X: Slim Min) CDN 연동 후 JQuery 문법에 기반하여 AJAX 요청 구현(HTML에서 DELETE요청) -->
+        <script>
+
+          // list.ejs 페이지를 새로고침 할 때 마다 삭제 요청 발생하는 것이 아니라 삭제 버튼을 누를 때만 삭제 요청 동작하도록 JQuery 문법으로 click 이벤트 처리함
+          $('.delete').click(function(e){
+
+            // e.target은 지금 클릭한 것
+            // JQuery 환경에서의 this는 지금 이벤트 동작하는 곳 (JavaScript의 this와는 다른 뜻인가? 재확인요)
+
+            // 내가 누른 요소(e.target)에 숨겨진 data-li_tag_data_id 값을 가져와(dataset.li_tag_data_id) 주세요
+            let 글번호 = e.target.dataset.li_tag_data_id;
+            console.log('삭제 버튼 클릭 이벤트 글번호', 글번호);
+
+            // JQuery 환경에서의 this는 현재 이벤트가 동작하는 곳
+            let 사용자가클릭한것 = $(this)
+
+            $.ajax({
+                // 서버에 새로고침 없이 DELETE 요청을 할거예요
+                method: 'DELETE',
+                // 요청할 경로
+                url: '/delete',
+                // 요청과 함께 보낼 데이터 (즉, 요청보낼 때 삭제할 게시물 번호 _id (즉, 사용자가 누른 삭제버튼의 번호 data-li_tag_data_id)를 함께 전송)
+                data: { _id: 글번호 }
+              }).done(function(결과){
+                // [ JQuery & AJAX 문법 ] $ajax.({ }).done 뜻은 AJAX DELETE 요청이 성공하면 done 이하를 실행해주세요
+
+                console.log('$.ajax DELETE 요청 성공 to browser');
+                
+                // 페이지를 강제로 새로고침 해주세요 location.reload 라는 JQuery함수 사용요
+                // 삭제버튼을 누른 요소를 브라우저 화면에서 제거(또는 안보이게) 해주세요
+                // [ JQuery 문법 ] .parent()는 부모 요소 선택하는 메소드
+                // [ JQuery 문법 ] .fadeOut()은 JQuery 애니메이션 함수의 일종
+                사용자가클릭한것.parent('li').fadeOut();
+              }).fail(function(xhr, textStatus, errorThrown){
+                // 요청 실패시 브라우저단에도 실패했다고 알려주기 위한 코드
+                // [ JQuery & AJAX 문법 ] $.ajax( { } ).done( ).fail( ) 코드 입장에서는 내가 보낸 요청에 대해 서버단에서 처리 성공했는지 실패했는지 모름
+                
+                console.log('서버에서 요청 처리 실패');
+                console.log('------------------------------------')
+                console.log('xhr 에러 내용', xhr);
+                console.log('------------------------------------')
+                console.log('textStatus 응답코드', textStatus);
+                console.log('------------------------------------')
+                console.log('errorThrown 에러메시지', errorThrown);
+              })
+
+          });
+
+        </script>
+      
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    
+    <!-- HTML에서 서버에 DELETE 요청 보내기 위해 JQuery 문법 기반으로 AJAX 요청 코드를 작성해야 함. JQuery Min 버전을 CDN으로 연동해야 하므로 부트스트랩 기본값인 JQuery Slim Min 연동 코드는 주석처리함  -->
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
+    -->
+  </body>
+</html>
