@@ -1,0 +1,10 @@
+/*  CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함 */
+
+h4 {
+  /* 로컬 컴퓨터에 해당 폰트가 설치되어 있어야 적용됨 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+
+  color: darkcyan;
+  font-weight: 600;
+}

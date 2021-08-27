@@ -6,6 +6,9 @@
 const express = require('express');
 const app = express();
 
+// static 파일(예- detail.ejs에서 /public/main.css를 첨부해서 사용함)을 보관하기 위해 public 폴더를 사용할 거예요
+app.use('/public', express.static('public'));
+
 // express 내장 body-parser 라이브러리 인코딩 활성화
 // form input에 적은 정보는 요청 파라미터에 들어있음(express라이브러리에 body-parser 라이브러리도 내장됨)
 // express 미포함 시절에는 (1) npm install body-parser (2) const bodyParse = require('body-Parser'); app.use(express.urlencoded({extended: true}));
@@ -17,8 +20,6 @@ app.use(express.urlencoded({extended: true}))
 // npm i ejs (강좌 영상에서는 3.0.1 / 실제 설치 3.1.6)
 // ejs 버전: https://www.npmjs.com/package/ejs?activeTab=versions
 app.set('view engine', 'ejs')
-
-
 
 // package.json 파일이 있는 폴더 위치가 pug, ejs 템플릿 동작시 인식하는 cwd 기준점
 // Error: Failed to lookup view 
@@ -64,6 +65,9 @@ MongoClient.connect(MYDBURL, {useUnifiedTopology:true}, function(에러, client)
 
 // 누군가가 /pet으로 방문하면, pet 관련된 안내문을 띄워주자
 // ES6 문법 ( ) => {} 그냥 function이라고 쓰는 것과 차이점은 함수 내부에서 this라는 키워드의 값이 바뀐다.
+
+/*
+// 수업 내용 초반부 연습용 코드 (지워도 됨)
 app.get('/pet', function(요청, 응답){
 응답.send("펫용품 쇼핑 페이지입니다.")
 })
@@ -71,17 +75,27 @@ app.get('/pet', function(요청, 응답){
 app.get('/beauty', function(요청, 응답){
   응답.send('뷰티용품 쇼핑 페이지입니다');
 })
+*/
 
-// 껐다 키기 귀찮으니 npm install -g nodemon 
+// 껐다 켜기 귀찮으니 npm install -g nodemon 
 
+/*
+// 루트경로 GET요청시 구 index.html 응답 코드 --> 현 views/index.ejs 파일 응답 코드 
 // Get요청 업그레이드 : 접속시 HTML 파일 보내주기 
 // __dirname은 현재 파일의 경로를 뜻합니다
+
 app.get('/', function(요청, 응답){
   응답.sendFile(__dirname + '/index.html')
 })
+*/
+
+app.get('/', function(요청, 응답){
+  // 주의: ejs 엔진이 views 폴더 찾아갈 수 있도록 app.set('views', './views') 코드 작성했으므로 index.ejs 파일에 대한 경로를 views/index.ejs라고 적는 것은 views/views/index.ejs를 찾으라는 말이 되므로 주의
+    응답.render('index.ejs');
+})
 
 app.get('/write', function(요청, 응답){
- 응답.sendFile(__dirname + '/write.html')
+  응답.render('write.ejs');
 })
 
 // /add 경로로 POST 요청하면 ~를 해주세요
@@ -91,7 +105,12 @@ app.get('/write', function(요청, 응답){
 // body-Parser 라이브러리(input 태그에 적은 내용 해석 도와줌) 실행 app.use(express.urlencoded({extended: true}));
 // POST 요청으로 서버에 데이터 전송하려면 (1) body-Parser(input 태그에 적은 내용 해석 도와줌) 코드실행 app.use(express.urlencoded({extended: true})); (2) form데이터 input태그들에 name 쓰기 (3) 요청.body (ex: 요청.body.인풋 태그 name 속성의 값)라고 하면 form에서 보낸 자료 수신가능
 app.post('/add', function(요청, 응답){
+
+  // ?? 재확인요: 응답.send 대신에 응답.render로 list.ejs 페이지 연결하려는데 왜 Error: Failed to lookup view "./views/list.ejs" in views directory "./views" 이런 오류 나는지
+  // 응답.render('list.ejs');
+  
   응답.send('/add로 전송완료')
+    
   console.log(요청.body.title)
   console.log(요청.body.date)
 
@@ -132,6 +151,28 @@ app.get('/list', function(요청, 응답){
 
   // 주의: 현위치의 중괄호 속에는 응답 파라미터는 있어도 결과 파라미터는 없음. 
 })
+
+// 없는 게시물 에러처리 코딩요: /detail/어쩌구의 어쩌구 자리에 DB에 들어있지 않은 _id값을 요청하여 db.collection(' ').fineOne( ) 하라고 한다면 에러 결과를 사용자 브라우저단 화면에 어떻게 알려줄 것인지 코딩요
+
+// cRud 기능: /detail/어쩌구 경로로(URL의 파라미터로) GET 요청하면 DB에서 { _id: 어쩌구 }인 게시물을 찾은 결과 데이터를 detail.ejs로 보냄
+app.get('/detail/:detail_page_id', function(요청, 응답){
+
+  // 요청.params.detail_page_id 뜻은 URL의 파라미터(요청.params) 중에 _id가 detail_page_id인 파라미터에 해당하는 값
+
+  // Object 자료 다루기 스킬 설명: 서버 데이터 통신 과정에서 { _id: 요청.params.detail_page_id }의 value값 자료형이 string(즉, 문자형 숫자)이므로 JavaScript 문법 parseInt를 통해 숫자형으로 자료형 변환해야 함
+  요청.params.detail_page_id = parseInt(요청.params.detail_page_id)
+ 
+  db.collection('postCol').findOne( { _id: 요청.params.detail_page_id}, function(에러, 결과){
+
+    // [ express 문법 ] 응답.render(' EJS 파일명.ejs ', function( EJS 파일로 보낼 데이터 ))
+    응답.render('detail.ejs', { detail_page_id_result: 결과});
+    
+  } )
+
+  
+
+})
+
 
 // JQuery Min 버전(X: Slim Min) CDN 연동 후 JQuery 문법에 기반하여 AJAX 요청 구현(HTML에서 DELETE요청)
 // EJS, HTML 에서 AJAX 코드로 서버에 DELETE 요청 보낸 것을 express의 app.delete가 받아서 MongoDB로 DELETE 요청해줌
