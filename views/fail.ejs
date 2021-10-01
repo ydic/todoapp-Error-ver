@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-    <title>홈</title>
+    <title>login failed</title>
 
     <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
     <link rel="stylesheet" href="/public/main.css">
@@ -18,7 +18,7 @@
     <!-- [ EJS 문법 ] (본 EJS 파일위치 기준으로 상대경로) nav.html을 첨부해 주세요 -->
     <%- include('nav.html') %>
 
-    <h4 class="text-center">홈입니다</h4>
+    <h4 class="text-center"><%= errorMessage %></h4>
 
     <!-- HTML에서 서버에 DELETE 요청 보내기 위해 JQuery 문법 기반으로 AJAX 요청 코드를 작성해야 함. JQuery Min 버전을 CDN으로 연동해야 하므로 부트스트랩 기본값인 JQuery Slim Min 연동 코드는 주석처리함  -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>

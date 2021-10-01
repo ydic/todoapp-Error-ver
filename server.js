@@ -246,12 +246,172 @@ app.put('/edit', function(요청, 응답){
   // .updateOne({어떤 게시물 수정할 건지}, {수정값}, 콜백함수)
   // [ mongodb 문법 ] $set은 업데이트 또는 새로 추가(즉, 없으면 추가)하는 기능을 해줌. 여러가지 operator 중에($inc 등) 한 가지임. 사용 형식은 { $set : { KEY : VALUE } }
   // 요청.body에는 edit.ejs input 태그에 직접 작명한 name 속성명들이 보유한 value 값이 담겨있음
-  let editput = parseInt(요청.body.editput);
+  let editputdbid = parseInt(요청.body.editputdbid);
+  console.log('parseInt 적용한 editputdbid는', editputdbid);
+
   let edittitle = 요청.body.title;
   let editdate = 요청.body.date;
 
-  db.collection('postCol').updateOne({_id: editput},{ $set: {제목: edittitle, 날짜: editdate}}, function(에러, 결과){
-    console.log('수정완료')
+  db.collection('postCol').updateOne({_id: editputdbid},{ $set: {제목: edittitle, 날짜: editdate}}, function(에러, 결과){
+    console.log('edit PUT 수정완료', editputdbid, edittitle, editdate);
     응답.redirect('/list');
   })
+})
+
+// Session 방식으로 회원인증 로그인 기능 구현하기 위한 라이브러리 설치 및 사용 (즉, npm i passport passport-local express-session)
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const session = require('express-session');
+
+// [Express 문법] app.use(미들웨어)는 server는 요청, 응답해 주는 역할을 하는데 그 중간에서 뭔가 뭔가 실행되는 코드임
+app.use(session({ secret: '비밀코드', resave : true, saveUninitialized: false}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// 기능 구현순서 발상요령 팁: 역순으로 개발 (로그인 기능 구현 위해 회원가입 기능부터 만들기보다는 DB에 직접 ID/PW 한 쌍을 임의로 만들어 기능 구현하기)
+// 혼자 해볼 것들: 회원가입 제작하기 (즉, 회원가입 form을 전송하면 db에 저장되도록 제작요 / ID, email, 전화번호 등 db에 저장되기 전에 맞춤형 미들웨어와 정규표현식으로 중복검사와 유효성 검사요)
+app.get('/login', function(요청, 응답){
+  // 주의: 코드 리팩토링 방법 터득요. login.ejs와 loginrequired.ejs는 errorMessage 오브젝트 전달 유무와 form action 경로 차이. 동일 코드를 2개의 페이지로 중복운영.
+  응답.render('login.ejs');
+})
+
+app.get('/fail', function(요청, 응답){
+  응답.render('fail.ejs', { errorMessage: 'ID 또는 PW가 유효하지 않습니다.'})
+})
+
+// [ 인증 STEP 03 - Express, Passport 문법 ] 로그인 성공하여 Session 보유한 사용자만이 /mypage GET요청시 페이지 접근 허용되도록 맞춤형 미들웨어 제작해 라우팅과 결합
+// 주의: hash 함수 적용해서 변경한 비밀번호도 hash 코드로 db에 update 저장되도록 코드 수정요
+app.get('/mypage', 로그인했는지검사하는미들웨어, function(요청, 응답){
+  
+  // deserializeUser() 내장함수 속 결과 파라미터에 담긴 사용자의 각종 부가적 개인정보가 본 코드의 요청.user로 넘어옴
+  console.log('deserializeUser()의 결과 파리미터로부터 넘어온 요청.user에 담긴 값은', 요청.user);
+
+  응답.render('mypage.ejs', { loginedUserInfo: 요청.user });
+})
+
+// [ 인증 STEP 03 - Express, Passport 문법 ] 로그인 성공하여 Session 보유한 사용자만이 /mypage GET요청시 페이지 접근 허용되도록 맞춤형 미들웨어 제작해 라우팅과 결합
+function 로그인했는지검사하는미들웨어(요청, 응답, next){
+  
+  console.log('로그인했는지검사하는미들웨어 요청.user는', 요청.user);
+  
+  // 로그인 후 session 있으면 요청.user가 항상 있으므로 사용자를 next() (즉, 통과)시키고 요청.user가 없다면 로그인 요청하는 메시지 보여줌
+  if(요청.user){
+    next()
+  } else {
+    // 주의: 코드 리팩토링 방법 터득요. login.ejs와 loginrequired.ejs는 errorMessage 오브젝트 전달 유무와 form action 경로 차이. 동일 코드를 2개의 페이지로 중복운영.
+    응답.render('loginrequired.ejs', { errorMessage: '해당 페이지는 로그인이 필요합니다'})
+  }
+}
+
+// [ 인증 STEP 01 - Passport 문법 ] .authenticate() 내장함수를 통해 login.ejs에서 form 태그를 POST 요청으로 submit시 ID, PW 검사함 (주의: 인증 방식은 라이브러리(passport, passport-local, express-session) 연동한 별도의 세부코드를 작성해야 함)
+app.post('/login', passport.authenticate('local', { failureRedirect: '/fail'}), function(요청, 응답){
+  
+  // login.ejs에서 submit하여 POST 요청하면 요청.body에 담기는 데이터는 { id: 'test', pw: 'test' } 형태임
+  console.log('인증 STEP 01 코드 내부에서', 요청.body);
+  
+  응답.redirect('/');
+})
+
+// [ 인증 STEP 02 - Passport, Passport-local의 Strategy 클래스, Express-session 문법 ] 주의: 인증 방식은 라이브러리(passport, passport-local, express-session) 연동한 별도의 세부코드를 작성해야 함
+passport.use(new LocalStrategy({
+  // 사용자가 login.ejs 페이지에서 입력한 input 태그의 name 속석명
+  usernameField: 'id',
+  passwordField: 'pw',
+
+  // 로그인 후 session을 저장함 (즉, true)
+  session: true,
+  
+  // ID, PW 이외에 다른 정보도 검증하려면 true 설정 후 바로 뒤이은 callback 함수 코드에 파라미터(예- req)를 추가해 값을 받아와(예- req.body) 처리하면 됨
+  passReqToCallback: false,
+  }, function(입력한아이디, 입력한비번, done){
+    console.log('인증 STEP 02 코드 내부에서', 입력한아이디, 입력한비번)
+
+    /*
+    1. DB에서 {id : 입력한아이디} 인 문서를 찾은 다음에
+    2. 그게 있으면 그 문서에 있는 pw 값과 입력한 비번을 비교하면 되지 않을까요?
+    3. 성공하면 찾은 유저를 출력해주든가 그러시면 되겠군요. 
+    */
+
+    db.collection('loginCol').findOne( { id: 입력한아이디 }, function(에러, 결과){
+      
+      // [ 문법 (?어디 소속?) ] done(서버 에러, 성공시 사용자 DB데이터, 에러메시지)
+      /*
+      done이 인자를 세 개나 받아 헷갈릴 수도 있는데 다음과 같습니다. 
+      첫 번째 인자는 DB조회 같은 때 발생하는 서버 에러를 넣는 곳입니다. 무조건 실패하는 경우에만 사용합니다. 
+      두 번째 인자는 성공했을 때 return할 값을 넣는 곳이고요. 성공했으면 당연히 첫 번째 인자는 null이어야겠죠? 에러가 있으면 안 되니까요. 
+      세 번째 인자는 언제 사용하나면, 사용자가 임의로 실패를 만들고 싶을 때 사용합니다. 
+      
+      첫 번째 인자를 사용하는 경우는 서버에서 에러가 났을 때 무조건 실패하는 경우라고 했죠. 
+      세 번째 인자는 위에서 비밀번호가 틀렸다는 에러를 표현하고 싶을 때 사용하면 됩니다. 
+      이것은 서버 에러도 아니고, 사용자가 임의로 만드는 에러이기 때문에, 직접 에러 메시지도 써주는 겁니다.
+      */
+      if(에러) return done(에러)
+      
+      // ?? 코애 질문:  message 오브젝트는 어디에서 넘겨받으라고? fail.ejs?
+      if(!결과) return done(null, flase, { message: '존재하지 않는 ID 입니다'})
+
+      // 주의: 보안에 취약한 코드 구조(pw가 암호화되지 않음 - 예: hash함수 적용된 암호끼리 일치여부 대조요)라는 문제점
+      if(입력한비번 == 결과.pw){
+        // ID, PW 모두 일치하여 로그인 성공했다면 session을 만들어서 사용자가 로그인 했다는 정보를 저장해 놓고 마이페이지 방문시 session 검사해야 함
+        return done(null, 결과)
+          /*         
+          지금 if ( 입력한비번 == 결과.pw ) 라는 부분에서 사용자가 입력한 비밀번호와 DB의 pw 항목을 같은지 비교하고 있는데
+
+            - 애초에 DB에 pw를 저장할 때 암호화해서 저장하는 것이 좋으며
+            - 사용자가 입력한 비번을 암호화해준 뒤에 이게 결과.pw와 같은지 비교하는게 조금 더 보안에 신경쓴 방법입니다. 
+
+          하지만 보안보안 암호화암호화 거리면 강의가 너무나 복잡해져서 이해도가 떨어질 수 있기 때문에
+          나중에 구글에 좋은 비번저장 예제를 찾아서 한번 그대로 적용해보시길 바랍니다. 
+          */
+      } else {
+        // ?? 코애 질문:  message 오브젝트는 어디에서 넘겨받으라고? fail.ejs?
+        return done(null, false, { message: '틀린 PW 입니다'})
+      }
+    })
+  })
+)
+
+// [ 인증 STEP 03 - Express, Passport 문법 ] 로그인 성공한 사용자의 Session을 저장함
+// [ 인증 STEP 03 - Express, Passport 문법 ] .serializeUser() 내장함수 기반으로 id를 이용해서 session을 저장시킴 (로그인 성공시 발동)
+// [ 인증 STEP 03 - Express, Passport 문법 ] 인증 STEP 02 코드에서 ID,PW 검증 성공시 return done(null, 결과)의 결과 속에 담긴 내용이 .serializeUser() 내장함수의 callback 함수의 user 파라미터 속으로 들어오게 됨
+passport.serializeUser(function(user, done){
+  // session 데이터를 만들고 session의 id 정보를 cookie로 보냄 (르그인 성공 후 크롬 개발자 도구 > application > storage > cookies 에서 생성된 session 확인 가능함)
+  console.log('인증 STEP 03 serializeUser 코드 내부에서 user 파라미터 속 내용은', user);
+  done(null, user.id);
+});
+
+// [ 인증 STEP 03 - Express, Passport 문법 ] .deserializeUser() 내장함수 기반으로 session 있는 사용자만 이용 가능한 마이페이지 접속시 발동. (즉, 로그인한 사용자의 SESSION ID를 바탕으로 개인정보(그 외 이름, 성별, 나이 등)를 DB에서 찾아서 마이페이지에서 출력하도록 돕는 역할)
+// [ 인증 STEP 03 - Express, Passport 문법 ] db에서 serializeUser() 함수를 통해 db에서 user.id로 사용자를 찾은 후 사용자 정보를 .deserializeUser() 내장함수의 done 함수 내에 넣음
+// serializeUser 내부 done 콜백함수의 user.id 값이 deserializeuser 내부 콜백함수의 아이디 파라미터로 넘어옴
+passport.deserializeUser(function(아이디, done){
+  console.log('인증 STEP 03 deserializeUser 코드 내부에서 <아이디>라는 파라미터는 ', 아이디);
+
+  // 마이페이지 접속시 db에서 { id: 어쩌구 } 인걸 찾아서 그 결과를 보내줌
+  db.collection('loginCol').findOne({ id: 아이디}, function(에러, 결과){
+    console.log('인증 STEP 03 deserializeUser 코드 내부에서 결과 파라미터에 담긴 값은', 결과);
+    done(null, 결과);
+  })
+});
+
+// HTML form 태그 PUT, DELETE 요청 지정하기 위해 method-override 라이브러리 설치 후 server.js에서 라이브러리 호출 및 사용함 (즉, npm i method-override)
+app.put('/mypage', function(요청, 응답){
+  // app.put('/mypage/:id', function(요청, 응답){
+
+// form에서 전송한 db아이디(숨겨진 input), 사용자 아이디, 변경할 비밀번호 가지고 db.collection('postCol')에서 게시물 찾아서 update함
+// edit.ejs form 태그의 action 및 method 속성 설정(즉, PUT 또는 DELETE 요청 위해서)과 라이브러리(method-override) 설치 및 사용 확인요
+// .updateOne({어떤 게시물 수정할 건지}, {수정값}, 콜백함수)
+// [ mongodb 문법 ] $set은 업데이트 또는 새로 추가(즉, 없으면 추가)하는 기능을 해줌. 여러가지 operator 중에($inc 등) 한 가지임. 사용 형식은 { $set : { KEY : VALUE } }
+// 요청.body에는 mypage.ejs input 태그에 직접 작명한 name 속성명들이 보유한 value 값이 담겨있음
+
+    let mypageputdbid= 요청.body.mypageputdbid;
+let uniqueid = 요청.body.uniqueid;
+let newpw = 요청.body.newpw;
+
+console.log('mypage PUT 요청에 들어온 dbid와 newpw 값은', 요청.body);
+
+// 혼자 해볼 것들: ?? 질문?? {어떤 게시물 수정할 건지} 오브젝트를 db 고유 아이디인 { _id : mypageputdbid } 로 지정하면 정상동작하지 않는 이유? 사용자 아이디인 { id: uniqueid }로는 됨. 어디에 오타? 어디에 논리오류?
+db.collection('loginCol').updateOne({id: uniqueid},{ $set: {pw: newpw} }, function(에러, 결과){
+console.log('loginCol의 updateOne 파라미터 _id, id, pw는', mypageputdbid, uniqueid, newpw);
+응답.redirect('/list');
+})
 })
