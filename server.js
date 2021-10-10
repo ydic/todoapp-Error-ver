@@ -2,13 +2,12 @@
 
 // 'use strict';
 
-// 환경변수 사용을 위한 라이브러리 dotenv 설치 및 사용 (즉, npm install dotenv)
-require('dotenv').config();
-
 // express 라이브러리 첨부와 사용
 const express = require('express');
     // import express from 'express';
 const app = express();
+
+
 
 // morgan 라이브러리 첨부와 사용
     // import morgan from 'morgan';
@@ -41,6 +40,8 @@ app.set('views', './views')
 
 // npm i mongodb@3.6.6 설치(2018년도) 후 mongodb 라이브러리 첨부
 // (2018년도) https://docs.mongodb.com/manual/release-notes/3.6/
+const PORT = 8080;
+const MYDBURL = 'mongodb+srv://admin:qwer1234@cluster0.k01og.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 
 const MongoClient = require('mongodb').MongoClient;
       // import { default as mongodb } from 'mongodb';
@@ -52,8 +53,7 @@ let db;
 // [ mongoDB Connection Guide ] https://docs.mongodb.com/drivers/node/current/fundamentals/connection/
 // mongoDB connect 파라미터 값으로 {useUnifiedTopology:true} 추가함
 // 이유(노드서버 실행시 경고문구 나옴): To use the new Server Discover and Monitoring engine, pass option { useUnifiedTopology: true } to the MongoClient constructor.
-// [ dotenv 라이브러리 문법 ] .env 환경변수 파일 불러오는 문법은 process.env.변수이름
-MongoClient.connect(process.env.MYDBURL, {useUnifiedTopology:true}, function(에러, client){
+MongoClient.connect(MYDBURL, {useUnifiedTopology:true}, function(에러, client){
 
   // mongoDB connect 콜백함수 error 파라미터 이용해서 connection 에러 발생시 에러 내용 콘솔출력
   if(에러) return console.log(에러);
@@ -70,9 +70,8 @@ MongoClient.connect(process.env.MYDBURL, {useUnifiedTopology:true}, function(에
 
   // MongoDB 연결 성공하면 이어서 Server를 연결해주세요
   // listen(서버 띄울 포트번호, 띄운 후 실행할 코드)
-  // [ dotenv 라이브러리 문법 ] .env 환경변수 파일 불러오는 문법은 process.env.변수이름
-  app.listen(process.env.PORT, function(){
-  console.log(`listening on ${process.env.PORT}`)
+  app.listen(PORT, function(){
+  console.log(`listening on ${PORT}`)
 })
 })
 
