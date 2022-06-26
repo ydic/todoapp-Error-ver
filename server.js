@@ -186,6 +186,139 @@ app.get('/list', function(요청, 응답){
   // 주의: 현위치의 중괄호 속에는 응답 파라미터는 있어도 결과 파라미터는 없음. 
 })
 
+app.get('/search', (요청, 응답) => {
+  // 사용자 입력값을 받아오는 방법에는 요청.body 이외에도 Query String 이 Object 자료형으로 담겨있는 요청.query 도 있음
+  console.log(요청.query.valueKeyword);
+
+// [ nmd 정규표현식 문법 MongoDB ] $regex는 MongoDB가 제공하는 여러 operator 중에 한 가지임 / 예- { <field> : { $regex: 정규표현 관련 설정(문서 재참고요) } }
+// [ nmd 정규표현식 문법 Javascript ] new RegExp(PATTERN, FLAGS) 예- $regex: new RegExp(keyword,'i')
+// [ nmd 정규표현식 문법 Javascript ] i는 ignore case이며 영문 대소문자 구분하지 않는 속성임
+
+// [ 검색기법 01 하 ] 요청.query.valueKeyword 코드의 기능상 단점은 검색어와 정확히 일치하는 것만 찾아줌(즉, 모든 항목을 찾아보는 full scan 방식으로 동작)
+// [ 검색기법 01 하 ] 즉, DB 에 고기요리, 튀김요리가 있을 때 '요리' 또는 '고기' 라고 검색시 검색결과 없음 / '고기요리'라고 검색해야 검색됨
+// [ 검색기법 02 중 ] 문자 검사하는 정규식(즉, /검색어/ )으로 요청.query.valueKeyword 코드의 단점 해결 가능하지만 find() 로 다 찾는 데 오랜 시간 소요됨
+// [ 검색기법 03 상 ] indexing 으로 고속 검색 가능함(전제조건: binary search 적용하려면 DB 데이터가 미리 정렬(텍스트/오름차순/내림차순) 되어 있어야 함)
+// [ 검색기법 03 상 ] index 는 binary search 를 위해 기존 collection 을 정렬(텍스트/오름차순/내림차순) 해놓은 사본
+// [ 검색기법 03 상 ] index 만드는 방법: Mongo DB -> collections -> Indexs -> create Index -> { "제목" : "text" }
+// [ 검색기법 03 상 ★★★ ] Mongo DB 문자자료는 index 만들 때 한꺼번에 기재요(즉, 제목 따로 날짜 따로 index 만들지 않는다)
+// [ 검색기법 03 상 ★★★ ] Mongo DB 같은 웹서비스 없는 서버실(IDC) 환경에서는 DB 조작은 원래 터미널 상의 명령어로 진행함
+// [ Mongo DB 문법 ] Mongo DB 는 기본적으로 _id 순으로 DB 데이터 정렬되어 있어서 _id 기준으로 검색시 binary search 해줌
+
+// [ JQuery 기반 Query String ] 프론트엔드에서 Query string을 쉽게 만들려면 jQuery 문법 중에 param, serialize 를 쓰면 됩니다. 
+// [ JQuery 기반 Query String 방법A ] const 자료 = { 이름: '값', 이름2: '값2'} 코드 기반으로 $.param(자료) 하면 이름1=값1&이름2=값2 이거가 남음
+// [ JQuery 기반 Query String 방법B ] <input>에 name 속성을 설정한뒤 $(폼태그를찾고).serialize()
+
+// [ Mongo DB 문법 ] https://www.mongodb.com/docs/manual/reference/operator/query/text/#std-label-text-query-operator-behavior
+// [ Mongo DB 문법 ] In the $search field, specify a string of words that the $text operator parses and uses to query the text index.
+// [ Mongo DB 문법 ] Mongo DB 가 지원하는 operator 인 $text 와 $search 를 활용해 검색 쿼리인 find() 에서 index 에 기반해 indexing 방식으로 검색함
+// [ Mongo DB 문법 ] { $text: { $search: 요청.query.valueKeyword }} 기법으로 빠른 검색 / OR 검색 가능 / - 제외 가능
+// [ Mongo DB 문법 ] 이닦기 글쓰기 라고 검색하면 이닦기 or 글쓰기가 포함된 모든 문서를 찾아줌
+// [ Mongo DB 문법 ] 이닦기 -글쓰기 라고 검색하면 이닦기인데 글쓰기라는 단어 제외 검색
+// [ Mongo DB 문법 ] "이닦기 글쓰기" 라고 검색하면 정확히 이닦기 글쓰기라는 phrase가 포함된 문서 검색
+// [ Mongo DB 문법 { $text: { $search: }} 기법 단점 ] ★★★ 글쓰기 라고 검색하더라도 글쓰기입니다~ 이런 문장은 못찾아줍니다. (띄어쓰기 기준으로 단어를 저장하는 방식이기 때문)
+// [ Mongo DB 문법 { $text: { $search: }} 기법 단점 ] 영어는 상관없는데 영어가 아닌 언어들(조사많은 한국어 / 띄어쓰기안하는 일본어중국어)은 그래서 text search 기능을 쓸 수가 없습니다.
+// [ Mongo DB 문법 { $text: { $search: }} 기법 단점 ] 그래서 그냥 영어서비스 개발할거면 쓰시고 아니라면 지웁시다. 
+
+// 해결책3 serach index 방식을 적용하여 띄어쓰기 기준으로만 제한적으로 검색해주는 { $text: { $search: 요청.query.valueKeyword }} 기법의 단점을 보완
+// [ 검색기법 03 상 search index ] index 삭제하는 방법: Mongo DB -> Atlas -> Browse Collections  -> Indexs -> 휴지통 아이콘 -> Type the index name 제목_text to drop (즉, { $text: { $search: 요청.query.valueKeyword }} 기법 테스트차 만들었던 { "제목" : "text" } 삭제)
+// [ 검색기법 03 상 serach index ] search index 만드는 방법: Mongo DB -> clusters -> search -> create Search Index -> visual editor 선택 -> titleSearch 라고 인덱스명 작명 -> 대상 Collection 으로 postCol 지정 -> refine your index 버튼 눌러 Index Analyzer 항목을 lucene.korean(한국어 형태소 분석기 / 일명, 조사걸러내는필터) 으로 지정 -> Add Field 버튼을 눌러서 제목 필드는 lucene.korean 사용한다고 특정 -> save change 버튼 클릭 -> create Search Index 버튼 클릭 (indexing 하면 MongoDB 용량 차지하므로 필요한 항목만 선별해 indexing 적용요)
+// [ 검색기법 03 상 serach index ] 글쓰기입니다~ 검색되도록 하려면 aggregate() 함수와 Search index를 조합해 사용합니다.
+// [ 검색기법 03 상 serach index ] 예- var 검색조건 = [ {발행날짜가 1~10일까지이고}, {글쓰기 라는 단어를 포함하고}, {정렬된 형태로}]
+// [ 검색기법 03 상 serach index ] 예- db.collection('postCol').aggregate(검색조건).toArray((에러, 결과)=>{}
+var 검색조건 = [
+  {
+    $search: {
+      // Mongo DB -> Atlas -> Browse Collections -> search -> create Search Index -> visual editor 선택 -> titleSearch 라고 인덱스명 작명 -> 이후 내용은 원본주석(search index 만드는 방법) 검색하여 참조요
+      index: 'titleSearch',
+      text: {
+        query: 요청.query.valueKeyword,
+        path: '제목'  // 제목 날짜 둘다 찾고 싶으면 ['제목', '날짜']
+      }
+    }
+  },
+  { $project: { 제목: 1, _id: 0, score: { $meta: 'searchScore' }}}
+        /*
+        // 코드풀이 및 실행결과 { $project: { 제목: 1, _id: 0, score: { $meta: 'searchScore' }}}
+        // 1 은 보여줌 / 0 은 안보여줌 / searchScore 매겨서 보여줌
+        글쓰기
+        [
+          { '제목': '글쓰기', score: 1.5145258903503418 },
+          { '제목': '글쓰기지만 글쓰기처럼 글쓰기', score: 1.4235844612121582 },
+          { '제목': '매우 많이 글쓰기', score: 1.1969165802001953 },
+          { '제목': '이닦기하면서 글쓰기', score: 0.9105052947998047 },
+          { '제목': '이닦기 띄어쓰기 책읽기', score: 0.4211652874946594 }
+        ]
+        */
+]
+
+// [ Mongo DB 문법 aggregate() 의문점 ★★★ ] https://www.mongodb.com/docs/manual/reference/method/db.collection.aggregate/#db.collection.aggregate--
+// [ Mongo DB 문법 aggregate() 의문점 ★★★ ] 글쓰기입니다~ 검색되는데 딱 한 글자로만 검색하는 것은 불가한 것 같음 (예- 글)
+db.collection('postCol').aggregate(검색조건).toArray((에러, 결과)=>{
+        // db.collection('postCol').find({ $text: { $search: 요청.query.valueKeyword }}).toArray((에러, 결과)=>{
+        // db.collection('postCol').find({ 제목: 요청.query.valueKeyword}).toArray((에러, 결과)=>{
+
+  /*
+  [ Mongo DB 문법 ] 그럼 100만개에서 '글쓰기'라는 단어가 포함된 문서를 검색해야하면 어떻게 하죠 ㄷㄷ
+  해결책 1. 검색할 문서의 양을 제한을 둡니다.
+  DB에다가 검색요청을 날릴 때 특정 날짜(예- JS 함수인 new Date() 기반으로 최근 일주일 이내 등록된 게시물)에서만 검색하라고 요구할 수도 있고
+  skip(), limit() 이런 함수를 이용하시면 pagination 기능을 개발할 수 있습니다.
+  그니까 맨 처음 검색할 땐 맨앞에 20개만 찾아줘~ 그 다음엔 다음 20개를 찾아줘~ 
+  이렇게 요구할 수 있다는 겁니다. 대부분의 게시판들은 이런 방법을 이용합니다.
+
+  해결책 2. text search 기능을 굳이 쓰고 싶으면 MongoDB를 님들이 직접 설치(즉, 웹서비스 형태가 아니라)하셔야합니다. 
+  그리고 indexing할 때 띄어쓰기 단위로 글자들을 indexing하지말고 다른 알고리즘을 써라~ 라고 셋팅할 수 있습니다. 
+  nGram(예- 글자 두개 단위로 indexing 해봐라 / 단, 두글자 이상 입력해야 검색유효한 단점) 이런 알고리즘을 쓰면 된다고 하는데 이걸 언제하고 있습니까 패스합시다 
+
+  해결책 3. 글쓰기입니다~ 검색되도록 하려면 aggregate() 함수와 Search index를 조합해 사용합니다.
+  Q. Atlas만 되는건가요? / A. 다른 DB호스팅 서비스들도 이런 유사한 기능이 있을겁니다. 
+  MongoDB Atlas에서만 제공하는 기능인데 클러스터 들어가보시면 아마 Search 어쩌구라는 메뉴가 있을겁니다. 그거 누르시면 됩니다. 
+  그러면 Search index라는걸 만들 수 있습니다. 전에 만든 text index랑 비슷한 기능을 제공하는데 아무튼 이름 잘 지어서 만들어주십시오
+  index 이름은 자유 작명이고 어떤 collection에 있는 항목을 indexing 할건지 선택하면 됩니다. . 
+  그리고 Analyzer를 설정하는 부분이 있습니다.
+  이걸 lucene.korean으로 바꿔주시면 똑똑하게 한국어에 딱 맞게 인덱싱을 해줍니다. 
+  lucene이 뭐냐면 그 형태소분석기 이런건데 한국어는 쓸데없는 조사 이런게 붙지 않습니까
+  글쓰기를 / 글쓰기입니다 / 글쓰기지만 / 글쓰기라도
+  이런 식으로 단어 뒤에 쓸데없는 조사가 붙는데 이걸 다 제거하고 필요한 단어만 남긴다고 보시면 됩니다. 
+  아무튼 이렇게 하시면 Search index를 만들 수 있습니다.
+  
+  aggregate() 함수를 쓰는데 이건 검색조건 여러개를 붙이고 싶을 때 유용한 함수입니다. 
+  aggregate() 안에 [ {검색조건1}, {검색조건2} ... ] 이렇게 조건을 여러개 집어넣을 수 있습니다. 
+  -예: [ {발행날짜가 1~10일까지이고}, {글쓰기 라는 단어를 포함하고}, {정렬된 형태로}]
+  지금은 하나만 집어넣어봄 
+  그리고 연산자인 $search를 넣으면 search index에서 검색이 된다고 하는군요. 
+  뭔가 길어보이지만 search index쓰는 방법을 그대로 카피해서 썼을 뿐입니다. 이것도 원리이해보다는 복붙의 영역임 
+  ★★★ 아무튼 저렇게 쓰시면 '글쓰기' 라고 검색했을 때 '글쓰기입니다~' 이런 문장들도 잘 검색해줍니다. 끝 
+
+          var 검색조건 = [
+            {
+              $search: {
+                index: '님이만든인덱스명',
+                text: {
+                  query: 요청.query.value, // 내 경우에는 query: 요청.query.valueKeyword,
+                  path: '제목'  // 제목날짜 둘다 찾고 싶으면 ['제목', '날짜']
+                }
+              }
+            },
+          { $sort : { _id : 1 } },
+          { $limit : 10 },
+          { $project : { 제목 : 1, _id : 0 } }
+          ]
+
+  aggregate() 안에 [ {검색조건1}, {검색조건2} ... ] 이렇게 여러개 넣을 수 있댔는데
+  그래서 여러개 저렇게 넣으시면 됩니다. 
+
+  검색조건 중에는 searchScore 라는 것도 있는데 검색키워드가 자주 포함된 데이터일수록 searchScore 수치가 높으며, 이 수치가 높은 순서대로 검색 결과를 보여줌
+
+  $sort를 쓰면 결과를 정렬해서 가져옵니다. _id를 오름차순으로 정렬해주세요~ 라고 썼습니다.
+  $limit을 쓰면 결과를 제한해줍니다. 맨위의 10개만 가져오라고 시켰습니다. 
+  $project를 쓰면 찾아온 결과 중에 원하는 항목만 보여줍니다. 0은 안보여주고 1은 보여주라는 뜻입니다. 위의 코드는 _id는 빼고 제목만 가져오겠군요. 
+  이 외에도 백만개의 $연산자가 있다고 합니다.
+  이걸 다 어떻게 외움 필요할 때 찾아서 씁니다. 
+  */
+  console.log(결과);
+  응답.render('searchresult.ejs', { searchResult: 결과 });
+  })
+})
 
 // JQuery Min 버전(X: Slim Min) CDN 연동 후 JQuery 문법에 기반하여 AJAX 요청 구현(HTML에서 DELETE요청)
 // EJS, HTML 에서 AJAX 코드로 서버에 DELETE 요청 보낸 것을 express의 app.delete가 받아서 MongoDB로 DELETE 요청해줌

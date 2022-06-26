@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-    <title>리스트 페이지</title>
+    <title>검색 결과 페이지</title>
 
     <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
     <link rel="stylesheet" href="/public/main.css">
@@ -23,7 +23,7 @@
     <%- include('nav.html') %>
 
     <!-- [ 부트스트랩 문법 ] class명으로 text-center 부여시 글자 태그를 가운데 정렬해줌-->
-    <h4 class="ml-2 my-3 text-center">서버에서 가져온 할일 리스트</h4>
+    <h4 class="ml-2 my-3 text-center">검색 결과</h4>
 
     <!-- [ Mongo DB 문법 ] 많이 찾을 때 collection().find().toArray() / 하나 찾을 때 collection().findOne() -->
     <!-- [ Web API 문법 ] 검색기능 코드 논리 순서 : 검색 버튼 누르면 서버에게 데이터 전달(일반적으로는 POST 요청으로 전달하지만 본 실습에서는 Query String 기법(즉, ?데이터명=데이터값 )을 통해 URL 을 잘 작성하여 GET 요청으로 전달하는 방법을 학습) -> 서버는 DB에서 사용자가 검색요청한 데이터 꺼내줌 -> ejs 파일로 보내서 사용자에게 쿼리결과 보여줌 -->
@@ -51,25 +51,19 @@
       <ul class="list-group">
         <!-- [ EJS 문법 ] express의 응답.render 통해서 ejs로 넘어온 결과 데이터를 <% %>, <%= %> 문법으로 받아서 보여줌 -->
         <!-- EJS <% %> 문법으로 for문 개폐부를 감싸고 반복문 내부에서도 <%= %> 문법으로 데이터 보여줌-->
-        <% for (let i = 0; i < postResult.length; i++) { %>
+        <% for (let i = 0; i < searchResult.length; i++) { %>
   
           <!--  -->
           <li class="list-group-item">
+
+            <p>글번호: <%= searchResult[i]._id %></p>
   
-            <!-- 삭제 버튼이 클릭 이벤트가 발생한 li 태그를 특정하고 식별하기 위해 EJS 문법 적용해 브라우저에 글번호 값을 직접 노출(?)하거나 html li태그 data-작명: "<%= %>" 속성(주의: 따옴표 필수)으로 숨겨서 동작시키거나 -->
+            <h4><a href="/detail/<%= searchResult[i]._id %>">할일 제목: <%= searchResult[i].제목 %></a></h4>
+            <p>할일 날짜: <%= searchResult[i].날짜 %></p>
             
-            <p>글번호: <%= postResult[i]._id %></p>
-  
-            <!-- 혼자 해볼 것들 [완료] : 글목록 페이지에서 글제목 누르면 상세페이지로 이동시키기 -->
-            <!-- [ YD 감격!! ] list.ejs 코드 내에서 상세페이지(detail.ejs) 진입할 수 있도록 하이퍼링크 연결하는 코드 문법으로 내가 시도해 본 a href="<%= %>" 형식이 맞나봄 -->
-            <h4><a href="/detail/<%= postResult[i]._id %>">할일 제목: <%= postResult[i].제목 %></a></h4>
-            <p>할일 날짜: <%= postResult[i].날짜 %></p>
-            
-            <!-- 주의: button 태그 눌러서 클릭 이벤트 발생하면 e.target.dataset.li-id 찾으려는 의도였음에도 data-listId 속성을 li 태그에 입력해서 클릭 이벤트 값 제대로 감지되지 않는 시행착오 겪었음-->
-            <!-- 주의: ejs 파일 내에서 사용자가 클릭한 삭제 버튼에 부여된 _id를 식별하기 위해 data-창작명 문법을 사용하는 올바른 문법은 data-소문자(언더바 가능)= / 틀린 문법은 data-카멜케이스와 마이너스 기호와 콜론(data-list--Id:) -->
             <!-- [ 부트스트랩 문법 ] class명으로 btn btn-danger 부여시 빨간색 버튼 모양 만들어줌 -->
-            <button class="delete btn btn-danger" data-li_tag_data_id= "<%= postResult[i]._id %>">삭제</button>
-            <a href="/edit/<%= postResult[i]._id %>"><button class="delete btn btn-secondary">수정</button></a>
+            <button class="delete btn btn-danger" data-li_tag_data_id= "<%= searchResult[i]._id %>">삭제</button>
+            <a href="/edit/<%= searchResult[i]._id %>"><button class="delete btn btn-secondary">수정</button></a>
           </li>
         <% } %>
       </ul>
