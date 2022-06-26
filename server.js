@@ -1,3 +1,10 @@
+// [ dotenv 라이브러리 문법 ] .env 파일을 package.json과 동일 폴더 계층에 두어야 함
+// [ dotenv 라이브러리 문법 ] 전체 코드의 최우선 순위로 dotenv 라이브러리를 인식시켜야 .env 파일에 별도 저장한 기밀 값들을 process.env.키값 문법을 통해 각 코드 파일들에서 불러와 각종 기능을 원활히 작동시킬 수 있음
+// [ dotenv 라이브러리 문법 ] npm install dotenv 명령어로 라이브러리 설치 및 등록 코드  후 대외비 환경변수 값을 .env 로 이전요
+require('dotenv').config()
+
+// 코드 실행 명령어: node server.js ---> nodemon server.js
+
 // 한 줄씩 적어가면서 해석하는게 남의 코드 해석하는 가장 좋은 방법
 
 // 'use strict';
@@ -15,6 +22,8 @@ const morgan = require('morgan');
 const logger = morgan('dev');
 app.use(logger);
 
+// HTML form 태그 method 요청 속성에 PUT, DELETE 직접 지정 불가 (즉, GET, POST로만 직접 지정 가능) 
+// HTML form 태그 PUT, DELETE 요청 지정하기 위해 method-override 라이브러리 설치 후 server.js에서 라이브러리 호출 및 사용함 (즉, npm i method-override) 
 const methodOverride = require('method-override');
 app.use(methodOverride('_method'));
 
@@ -40,8 +49,10 @@ app.set('views', './views')
 
 // npm i mongodb@3.6.6 설치(2018년도) 후 mongodb 라이브러리 첨부
 // (2018년도) https://docs.mongodb.com/manual/release-notes/3.6/
-const PORT = 8080;
-const MYDBURL = 'mongodb+srv://admin:qwer1234@cluster0.k01og.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+
+// [ dotenv 라이브러리 문법 ] npm install dotenv 명령어로 라이브러리 설치 후 대외비 환경변수 값을 .env 로 이전요
+       // const PORT = 8080;
+       // const MYDBURL = 'mongodb+srv://admin:qwer1234@cluster0.k01og.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 
 const MongoClient = require('mongodb').MongoClient;
       // import { default as mongodb } from 'mongodb';
@@ -53,7 +64,8 @@ let db;
 // [ mongoDB Connection Guide ] https://docs.mongodb.com/drivers/node/current/fundamentals/connection/
 // mongoDB connect 파라미터 값으로 {useUnifiedTopology:true} 추가함
 // 이유(노드서버 실행시 경고문구 나옴): To use the new Server Discover and Monitoring engine, pass option { useUnifiedTopology: true } to the MongoClient constructor.
-MongoClient.connect(MYDBURL, {useUnifiedTopology:true}, function(에러, client){
+// [ dotenv 라이브러리 문법 ] .env 파일에 환경변수 정보 별도 저장 관리함 process.env.MYDBURL / process.env.PORT
+MongoClient.connect(process.env.MYDBURL, {useUnifiedTopology:true}, function(에러, client){
 
   // mongoDB connect 콜백함수 error 파라미터 이용해서 connection 에러 발생시 에러 내용 콘솔출력
   if(에러) return console.log(에러);
@@ -70,8 +82,8 @@ MongoClient.connect(MYDBURL, {useUnifiedTopology:true}, function(에러, client)
 
   // MongoDB 연결 성공하면 이어서 Server를 연결해주세요
   // listen(서버 띄울 포트번호, 띄운 후 실행할 코드)
-  app.listen(PORT, function(){
-  console.log(`listening on ${PORT}`)
+  app.listen(process.env.PORT, function(){
+  console.log(`listening on ${process.env.PORT}`)
 })
 })
 
@@ -92,7 +104,10 @@ app.get('/beauty', function(요청, 응답){
 })
 */
 
-// 껐다 켜기 귀찮으니 npm install -g nodemon 
+// 껐다 켜기 귀찮으니 ★★★ npm install -g nodemon 
+// 'nodemon' 용어가 cmdlet, 함수, 스크립트 파일 또는 실행할 수 있는 프로그램 이름으로 인식되지 않습니다.
+// 이 시스템에서 스크립트를 실행할 수 없으므로 C:\Users\SAMSUNG\AppData\Roaming\npm\nodemon.ps1 파일을 로드할 수 없습니다.
+// ★★★ 관리자 권한으로 windows powershell 실행 -> get-ExecutionPolicy 명령어 실행결과가 Restricted 인지 확인 -> Set-ExecutionPolicy RemoteSigned 명령어로 권한 상태 변경 -> nodemon 실행 명령어 재실행
 
 /*
 // 루트경로 GET요청시 구 index.html 응답 코드 --> 현 views/index.ejs 파일 응답 코드 
@@ -191,6 +206,9 @@ app.delete('/delete', function(요청, 응답){
     // 요청이 성공했다고 브라우저단( ejs파일의 $.ajax( { }).done( ).fail ( ) )에 알려주는 코드
     // 중요: 서버는 꼭 뭔가 응답해줘야 함
     // 요청에 대한 응답.내장함수는 한 번만 작성가능함 Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client 
+    // ★★★ 주의! - 상태코드를 무조건 .status(200) 으로 성공 처리시키는 논리적 허점 존재함
+    // ★★★ 주의! - [ JQuery & AJAX 문법 ] list.js 에서 $.ajax( { } ).done( ).fail( ) 코드 입장에서는 내가 보낸 요청에 대해 서버단에서 처리 성공했는지 실패했는지 모름
+    // ★★★ 주의! - [ JQuery & AJAX 문법 ] list.js 에서 $.ajax( { } ).done( ).fail( ) 코드에서 .fail() 부문 동작 확인하려고 무조건 .status(400) 으로 에러 던지게 테스트함 / db.collection('postCol').deleteOne(요청.body, function(에러, 결과){응답.status(400).send()}     
     응답.status(200).send( { message: '$.ajax DELETE 요청 성공 from server'});
 
     console.log('deleteOne함수 에러 여부', 에러);
@@ -263,13 +281,14 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 
+// https://www.npmjs.com/package/passport
 // [Express 문법] app.use(미들웨어)는 server는 요청, 응답해 주는 역할을 하는데 그 중간에서 뭔가 뭔가 실행되는 코드임
 app.use(session({ secret: '비밀코드', resave : true, saveUninitialized: false}));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// 기능 구현순서 발상요령 팁: 역순으로 개발 (로그인 기능 구현 위해 회원가입 기능부터 만들기보다는 DB에 직접 ID/PW 한 쌍을 임의로 만들어 기능 구현하기)
-// 혼자 해볼 것들: 회원가입 제작하기 (즉, 회원가입 form을 전송하면 db에 저장되도록 제작요 / ID, email, 전화번호 등 db에 저장되기 전에 맞춤형 미들웨어와 정규표현식으로 중복검사와 유효성 검사요)
+// 기능 구현순서 발상요령 팁 ★★★ : 역순으로 개발 (로그인 기능 구현 위해 회원가입 기능부터 만들기보다는 DB에 직접 ID/PW 한 쌍을 임의로 만들어 기능 구현하기)
+// 혼자 해볼 것들 ★★★ : 회원가입 제작하기 (즉, 회원가입 form을 전송하면 db에 저장되도록 제작요 / ID, email, 전화번호 등 db에 저장되기 전에 맞춤형 미들웨어와 정규표현식으로 중복검사와 유효성 검사요)
 app.get('/login', function(요청, 응답){
   // 주의: 코드 리팩토링 방법 터득요. login.ejs와 loginrequired.ejs는 errorMessage 오브젝트 전달 유무와 form action 경로 차이. 동일 코드를 2개의 페이지로 중복운영.
   응답.render('login.ejs');
@@ -303,6 +322,8 @@ function 로그인했는지검사하는미들웨어(요청, 응답, next){
   }
 }
 
+// https://www.npmjs.com/package/passport
+// 서버 재시작(껐다 켜기) 하면 session 정보 휘발됨
 // [ 인증 STEP 01 - Passport 문법 ] .authenticate() 내장함수를 통해 login.ejs에서 form 태그를 POST 요청으로 submit시 ID, PW 검사함 (주의: 인증 방식은 라이브러리(passport, passport-local, express-session) 연동한 별도의 세부코드를 작성해야 함)
 app.post('/login', passport.authenticate('local', { failureRedirect: '/fail'}), function(요청, 응답){
   
@@ -312,16 +333,21 @@ app.post('/login', passport.authenticate('local', { failureRedirect: '/fail'}), 
   응답.redirect('/');
 })
 
+// 서버 재시작(껐다 켜기) 하면 session 정보 휘발됨
 // [ 인증 STEP 02 - Passport, Passport-local의 Strategy 클래스, Express-session 문법 ] 주의: 인증 방식은 라이브러리(passport, passport-local, express-session) 연동한 별도의 세부코드를 작성해야 함
+//  주의! - passport.authenticate('local', { failureRedirect: '/fail'}) 부분 코드 때문에 로그인 할 때만 passport.use(new LocalStrategy({}, function{}) 부문 코드가 동작함
 passport.use(new LocalStrategy({
-  // 사용자가 login.ejs 페이지에서 입력한 input 태그의 name 속석명
+  // 사용자가 login.ejs 페이지에서 입력한 input 태그의 name 속성명
   usernameField: 'id',
   passwordField: 'pw',
 
   // 로그인 후 session을 저장함 (즉, true)
   session: true,
   
-  // ID, PW 이외에 다른 정보도 검증하려면 true 설정 후 바로 뒤이은 callback 함수 코드에 파라미터(예- req)를 추가해 값을 받아와(예- req.body) 처리하면 됨
+            // ID, PW 이외에 다른 정보도 검증하려면 true 설정 후 바로 뒤이은 callback 함수 코드에 파라미터(예- req)를 추가해 값을 받아와(예- req.body) 처리하면 됨
+            // passReqToCallback: true,
+            // }, function(req, 입력한아이디, 입력한비번, done){
+  
   passReqToCallback: false,
   }, function(입력한아이디, 입력한비번, done){
     console.log('인증 STEP 02 코드 내부에서', 입력한아이디, 입력한비번)
@@ -351,6 +377,7 @@ passport.use(new LocalStrategy({
       if(!결과) return done(null, flase, { message: '존재하지 않는 ID 입니다'})
 
       // 주의: 보안에 취약한 코드 구조(pw가 암호화되지 않음 - 예: hash함수 적용된 암호끼리 일치여부 대조요)라는 문제점
+      // [ Javascript 문법 ] == 등호와 === 등호
       if(입력한비번 == 결과.pw){
         // ID, PW 모두 일치하여 로그인 성공했다면 session을 만들어서 사용자가 로그인 했다는 정보를 저장해 놓고 마이페이지 방문시 session 검사해야 함
         return done(null, 결과)
@@ -370,18 +397,19 @@ passport.use(new LocalStrategy({
     })
   })
 )
-
-// [ 인증 STEP 03 - Express, Passport 문법 ] 로그인 성공한 사용자의 Session을 저장함
+// 서버 재시작(껐다 켜기) 하면 session 정보 휘발됨
+// [ 인증 STEP 03 - Express, Passport 문법 ] 로그인 성공한 사용자의 Session을 저장함 (즉, STEP 01 로그인 성공 -> STEP 02 세션 + 쿠키 만듦 -> STEP 03 마이페이지 방문시 세션검사)
 // [ 인증 STEP 03 - Express, Passport 문법 ] .serializeUser() 내장함수 기반으로 id를 이용해서 session을 저장시킴 (로그인 성공시 발동)
-// [ 인증 STEP 03 - Express, Passport 문법 ] 인증 STEP 02 코드에서 ID,PW 검증 성공시 return done(null, 결과)의 결과 속에 담긴 내용이 .serializeUser() 내장함수의 callback 함수의 user 파라미터 속으로 들어오게 됨
-passport.serializeUser(function(user, done){
+// [ 인증 STEP 03 - Express, Passport 문법 ] ★★★ 인증 STEP 02 코드에서 ID,PW 검증 성공시 return done(null, 결과)의 결과 속에 담긴 내용이 .serializeUser() 내장함수의 callback 함수의 user 파라미터 속으로 들어오게 됨
+passport.serializeUser(function(user, done){ // ★★★★★★★★
   // session 데이터를 만들고 session의 id 정보를 cookie로 보냄 (르그인 성공 후 크롬 개발자 도구 > application > storage > cookies 에서 생성된 session 확인 가능함)
   console.log('인증 STEP 03 serializeUser 코드 내부에서 user 파라미터 속 내용은', user);
   done(null, user.id);
 });
 
+// 서버 재시작(껐다 켜기) 하면 session 정보 휘발됨
 // [ 인증 STEP 03 - Express, Passport 문법 ] .deserializeUser() 내장함수 기반으로 session 있는 사용자만 이용 가능한 마이페이지 접속시 발동. (즉, 로그인한 사용자의 SESSION ID를 바탕으로 개인정보(그 외 이름, 성별, 나이 등)를 DB에서 찾아서 마이페이지에서 출력하도록 돕는 역할)
-// [ 인증 STEP 03 - Express, Passport 문법 ] db에서 serializeUser() 함수를 통해 db에서 user.id로 사용자를 찾은 후 사용자 정보를 .deserializeUser() 내장함수의 done 함수 내에 넣음
+// [ 인증 STEP 03 - Express, Passport 문법 ] db에서 deserializeUser() 함수를 통해 db에서 아이디 라는 파라미터(즉, user.id) 로 사용자를 찾은 후 사용자 정보를 .deserializeUser() 내장함수의 done 함수의 결과 라는 파라미터로 넣음
 // serializeUser 내부 done 콜백함수의 user.id 값이 deserializeuser 내부 콜백함수의 아이디 파라미터로 넘어옴
 passport.deserializeUser(function(아이디, done){
   console.log('인증 STEP 03 deserializeUser 코드 내부에서 <아이디>라는 파라미터는 ', 아이디);
