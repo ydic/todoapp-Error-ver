@@ -124,53 +124,6 @@ app.get('/', function(요청, 응답){
     응답.render('index.ejs');
 })
 
-app.get('/write', function(요청, 응답){
-  응답.render('write.ejs');
-})
-
-// /add 경로로 POST 요청하면 ~를 해주세요
-// form 태그 action="/add" method="POST"
-// form input에 적은 정보는 요청 파라미터에 들어있음(express라이브러리에 body-parser 라이브러리도 내장됨)
-// express 미포함 시절에는 (1) npm install body-parser (2) const bodyParse = require('body-Parser'); app.use(express.urlencoded({extended: true}));
-// body-Parser 라이브러리(input 태그에 적은 내용 해석 도와줌) 실행 app.use(express.urlencoded({extended: true}));
-// POST 요청으로 서버에 데이터 전송하려면 (1) body-Parser(input 태그에 적은 내용 해석 도와줌) 코드실행 app.use(express.urlencoded({extended: true})); (2) form데이터 input태그들에 name 쓰기 (3) 요청.body (ex: 요청.body.인풋 태그 name 속성의 값)라고 하면 form에서 보낸 자료 수신가능
-app.post('/write', function(요청, 응답){
-    
-  // console.log(요청.body.title)
-  // console.log(요청.body.date)
-
-  // Crud 기능: /write 페이지에서 form submit하여 /add로 POST 요청하면 todoapp 데이터베이스의 postCol 컬렉션에 해당 값 인서트
-  // 올바른 게시물 DB 넘버링 원칙 (마치 영구결번처럼): 삭제된 게시물일지라도 그 게시물의 넘버링 값은 유니크하게 유지되어야 함
-
-  db.collection('counterCol').findOne({name: '게시물갯수'}, function(에러, 결과){
-    let 총게시물갯수 = 결과.totalPost;
-    
-    // 인서트 직전 시점까지의 총게시물갯수를 counterCol에서 찾은 후 postCol에 인서트하면서 _id : 총게시물갯수+1로 넘버링 함
-    db.collection('postCol').insertOne({ _id: 총게시물갯수 + 1, 제목: 요청.body.title, 날짜: 요청.body.date}, function(에러, 결과){
-      console.log('form submit 저장완료')
-
-      // crUd 기능: counterCol 컬렉션의 totalPost 항목도 1 증가시켜야 함 (즉, 1게시물 증가, 1카운터 증가)
-      // [Mongo DB 문법] 연산자(operator) 예시(그외많음): 변경은 { $set: { key: 바꿀값 } } / 증가는 { $inc { key: 기존값에 더해줄 값(음수도 가능)} } / 기존값보다 작을 때만 변경은 {$min : } {min : []} / key값 이름변경은 $rename 등등
-    
-      db.collection('counterCol').updateOne({ name: '게시물갯수' }, {$inc: { totalPost: 1}}, function(에러, 결과){
-        if(에러) return console.log('updateOne 에러 발생:', 에러);
-        
-        // ??? 재확인요: 두 번째 form submit 후에 총게시물갯수 콘솔로그값이 2가 나올 줄 알았는데 1이 나옴. 콘솔로그 위치문제? 콘솔로그 내용 자체 문제? 둘다?
-            console.log('총게시물갯수는', 총게시물갯수);
-      })
-    })
-  });  
-
-
-    // ?? 재확인요: 응답.send 대신에 응답.render로 list.ejs 페이지 연결하려는데 왜 Error: Failed to lookup view "./views/list.ejs" in views directory "./views" 이런 오류 나는지
-    // 작성페이지에서 submit 이후에 응답.render('list.ejs');코드로는 오류나고 응답.redirect('/list'); 코드로는 리스트페이지로 이동 성공??
-      // 응답.render('list.ejs');
-      // 응답.send('/add로 전송완료')
-      console.log('리다이렉트 직전')
-      응답.redirect('/list');
-      console.log('리다이렉트 직후')
-})
-
 // cRud 기능: /list 경로로 GET 요청하면 응답.render 코드에 담긴 ejs 파일을 렌더링하여 MongoDB 데이터들로 꾸며진 html을 보여줌
 app.get('/list', function(요청, 응답){
 
@@ -320,34 +273,6 @@ db.collection('postCol').aggregate(검색조건).toArray((에러, 결과)=>{
   })
 })
 
-// JQuery Min 버전(X: Slim Min) CDN 연동 후 JQuery 문법에 기반하여 AJAX 요청 구현(HTML에서 DELETE요청)
-// EJS, HTML 에서 AJAX 코드로 서버에 DELETE 요청 보낸 것을 express의 app.delete가 받아서 MongoDB로 DELETE 요청해줌
-app.delete('/delete', function(요청, 응답){
-  // AJAX로 DELETE 요청( 즉, $ajax({ }) )하면 게시물 번호( 즉, $ajax.( { method: , url: , _id: } ) 속에 담긴 _id 정보)도 서버에 보내주세요
-  // 주의: ejs 파일 내에서 사용자가 클릭한 삭제 버튼에 부여된 _id를 식별하기 위해 data-창작명 문법을 사용하는 올바른 문법은 data-소문자(언더바 가능)= / 틀린 문법은 data-카멜케이스와 마이너스 기호와 콜론(data-list--Id:)
-  // 요청.body로 들어오는 데이터는 list.ejs 코드의 button 태그 속성으로 data-소문자(언더바 가능)= 문법을 활용해 li_tag_data_id라고 창작한 속석명 앞에 data- 속성 지정 접두어를 붙여 data-li_tag_data_id= "<%= postResult[i]._id %>" 라고 보낸 데이터인 _id 값임
-  console.log('DELETE하기 위해 AJAX로 서버에 보내려는 데이터', 요청.body);
-  
-  // Object 자료 다루기 스킬 설명: AJAX 요청 코드에서 { data: { _id: 숫자 } } 문법으로 보냈지만 데이터 내부 처리 과정에서 epxress의 app.delete 함수에서 받은 요청.body에는 { _id: 문자형 숫자 } 자료형 변환 이뤄졌기에 parseInt(요청.body._id) 문법을 통해 다시 숫자 자료형으로 치환해야 함
-  요청.body._id = parseInt(요청.body._id);
-  
-  // 요청.body에 담긴 게시물 번호에 따라 MongoDB에서 게시물 삭제
-  // [ MongoDB 문법 ] deleteOne( -어떤 항목을 삭제할지-, -DELETE요청 성공했을 때 실행할 내용-) 함수 문법으로 게시물 하나 삭제
-  // 요청.body._id 자료형은 숫자형(ejs파일 속 $.ajax함수) -> 문자형 숫자(js파일 속 express의 app.delete함수) -> 숫자형(js파일 속 MongoDB의 db.collection(' ').deleteOne함수)
-  db.collection('postCol').deleteOne(요청.body, function(에러, 결과){
-    
-    // 요청이 성공했다고 브라우저단( ejs파일의 $.ajax( { }).done( ).fail ( ) )에 알려주는 코드
-    // 중요: 서버는 꼭 뭔가 응답해줘야 함
-    // 요청에 대한 응답.내장함수는 한 번만 작성가능함 Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client 
-    // ★★★ 주의! - 상태코드를 무조건 .status(200) 으로 성공 처리시키는 논리적 허점 존재함
-    // ★★★ 주의! - [ JQuery & AJAX 문법 ] list.js 에서 $.ajax( { } ).done( ).fail( ) 코드 입장에서는 내가 보낸 요청에 대해 서버단에서 처리 성공했는지 실패했는지 모름
-    // ★★★ 주의! - [ JQuery & AJAX 문법 ] list.js 에서 $.ajax( { } ).done( ).fail( ) 코드에서 .fail() 부문 동작 확인하려고 무조건 .status(400) 으로 에러 던지게 테스트함 / db.collection('postCol').deleteOne(요청.body, function(에러, 결과){응답.status(400).send()}     
-    응답.status(200).send( { message: '$.ajax DELETE 요청 성공 from server'});
-
-    console.log('deleteOne함수 에러 여부', 에러);
-  })
-});
-
 // 없는 게시물 에러처리 코딩요: /detail/어쩌구의 어쩌구 자리에 DB에 들어있지 않은 _id값을 요청하여 db.collection(' ').fineOne( ) 하라고 한다면 에러 결과를 사용자 브라우저단 화면에 어떻게 알려줄 것인지 코딩요
 
 // cRud 기능: /detail/어쩌구 경로로(URL의 파라미터로) GET 요청하면 DB에서 { _id: 어쩌구 }인 게시물을 찾은 결과 데이터를 detail.ejs로 보냄
@@ -409,6 +334,29 @@ app.put('/edit', function(요청, 응답){
   })
 })
 
+// HTML form 태그 PUT, DELETE 요청 지정하기 위해 method-override 라이브러리 설치 후 server.js에서 라이브러리 호출 및 사용함 (즉, npm i method-override)
+app.put('/mypage', function(요청, 응답){
+  // app.put('/mypage/:id', function(요청, 응답){
+
+// form에서 전송한 db아이디(숨겨진 input), 사용자 아이디, 변경할 비밀번호 가지고 db.collection('postCol')에서 게시물 찾아서 update함
+// edit.ejs form 태그의 action 및 method 속성 설정(즉, PUT 또는 DELETE 요청 위해서)과 라이브러리(method-override) 설치 및 사용 확인요
+// .updateOne({어떤 게시물 수정할 건지}, {수정값}, 콜백함수)
+// [ mongodb 문법 ] $set은 업데이트 또는 새로 추가(즉, 없으면 추가)하는 기능을 해줌. 여러가지 operator 중에($inc 등) 한 가지임. 사용 형식은 { $set : { KEY : VALUE } }
+// 요청.body에는 mypage.ejs input 태그에 직접 작명한 name 속성명들이 보유한 value 값이 담겨있음
+
+    let mypageputdbid= 요청.body.mypageputdbid;
+let uniqueid = 요청.body.uniqueid;
+let newpw = 요청.body.newpw;
+
+console.log('mypage PUT 요청에 들어온 dbid와 newpw 값은', 요청.body);
+
+// 혼자 해볼 것들: ?? 질문?? {어떤 게시물 수정할 건지} 오브젝트를 db 고유 아이디인 { _id : mypageputdbid } 로 지정하면 정상동작하지 않는 이유? 사용자 아이디인 { id: uniqueid }로는 됨. 어디에 오타? 어디에 논리오류?
+db.collection('loginCol').updateOne({id: uniqueid},{ $set: {pw: newpw} }, function(에러, 결과){
+console.log('loginCol의 updateOne 파라미터 _id, id, pw는', mypageputdbid, uniqueid, newpw);
+응답.redirect('/list');
+})
+})
+
 // Session 방식으로 회원인증 로그인 기능 구현하기 위한 라이브러리 설치 및 사용 (즉, npm i passport passport-local express-session)
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -456,6 +404,11 @@ function 로그인했는지검사하는미들웨어(요청, 응답, next){
 }
 
 // https://www.npmjs.com/package/passport
+// [ 로그인 세션 인증 passport 주요 절차 약식 골격 A ] passport.authenticate() 미들웨어가 포함된 app.post('/login', function(요청, 응답){}) 
+// [ 로그인 세션 인증 passport 주요 절차 약식 골격 B ] passport.use(new LocalStrategy({}) 
+// [ 로그인 세션 인증 passport 주요 절차 약식 골격 C ] passport.serializeUser(function(user, done){}
+// [ 로그인 세션 인증 passport 주요 절차 약식 골격 D ] passport.deserializeUser(function(아이디, done){}
+
 // 서버 재시작(껐다 켜기) 하면 session 정보 휘발됨
 // [ 인증 STEP 01 - Passport 문법 ] .authenticate() 내장함수를 통해 login.ejs에서 form 태그를 POST 요청으로 submit시 ID, PW 검사함 (주의: 인증 방식은 라이브러리(passport, passport-local, express-session) 연동한 별도의 세부코드를 작성해야 함)
 app.post('/login', passport.authenticate('local', { failureRedirect: '/fail'}), function(요청, 응답){
@@ -554,25 +507,106 @@ passport.deserializeUser(function(아이디, done){
   })
 });
 
-// HTML form 태그 PUT, DELETE 요청 지정하기 위해 method-override 라이브러리 설치 후 server.js에서 라이브러리 호출 및 사용함 (즉, npm i method-override)
-app.put('/mypage', function(요청, 응답){
-  // app.put('/mypage/:id', function(요청, 응답){
-
-// form에서 전송한 db아이디(숨겨진 input), 사용자 아이디, 변경할 비밀번호 가지고 db.collection('postCol')에서 게시물 찾아서 update함
-// edit.ejs form 태그의 action 및 method 속성 설정(즉, PUT 또는 DELETE 요청 위해서)과 라이브러리(method-override) 설치 및 사용 확인요
-// .updateOne({어떤 게시물 수정할 건지}, {수정값}, 콜백함수)
-// [ mongodb 문법 ] $set은 업데이트 또는 새로 추가(즉, 없으면 추가)하는 기능을 해줌. 여러가지 operator 중에($inc 등) 한 가지임. 사용 형식은 { $set : { KEY : VALUE } }
-// 요청.body에는 mypage.ejs input 태그에 직접 작명한 name 속성명들이 보유한 value 값이 담겨있음
-
-    let mypageputdbid= 요청.body.mypageputdbid;
-let uniqueid = 요청.body.uniqueid;
-let newpw = 요청.body.newpw;
-
-console.log('mypage PUT 요청에 들어온 dbid와 newpw 값은', 요청.body);
-
-// 혼자 해볼 것들: ?? 질문?? {어떤 게시물 수정할 건지} 오브젝트를 db 고유 아이디인 { _id : mypageputdbid } 로 지정하면 정상동작하지 않는 이유? 사용자 아이디인 { id: uniqueid }로는 됨. 어디에 오타? 어디에 논리오류?
-db.collection('loginCol').updateOne({id: uniqueid},{ $set: {pw: newpw} }, function(에러, 결과){
-console.log('loginCol의 updateOne 파라미터 _id, id, pw는', mypageputdbid, uniqueid, newpw);
-응답.redirect('/list');
+// passport 셋팅 기반으로 회원가입 기능 코드를 개발하기 때문에 passport 코드가 선위치 해야 함
+app.post('/register', function(요청, 응답){
+  // [ Mongo DB 문법 ] 코드 보완요 ★★★ 회원가입은 무조건 선 ID 중복검사 / 후 db.collection('loginCol').insertOne() 쿼리 진행요
+  // [ Javascript & 정규식 ] 코드 보완요 ★★★ 유효성 검사 예- ID 에 알파벳/숫자만 기입했나 / PW 저장 전에 암호화 했나
+  
+  // [ Mongo DB 문법 ] 정수형 _id 값을 설정한 postCol 스키마와는 다르게 loginCol 스키마에서는 애초에 정수로 _id 값 지정할 이유 없으므로 Mongo DB 가 기본적으로 부여하는 Object 형태의 _id 값을 그대로 이용함
+  console.log('요청.body ------', 요청.body)
+  var resultRegiter = db.collection('loginCol').insertOne({ id: 요청.body.regid, pw: 요청.body.regpw})
+  
+  console.log('resultRegister---------', resultRegiter);
+  응답.redirect('/')
 })
+
+app.get('/write', function(요청, 응답){
+  응답.render('write.ejs');
 })
+
+// /write 경로로 POST 요청하면 ~를 해주세요
+// form 태그 action="/write" method="POST"
+// form input에 적은 정보는 요청 파라미터에 들어있음(express라이브러리에 body-parser 라이브러리도 내장됨)
+// express 미포함 시절에는 (1) npm install body-parser (2) const bodyParse = require('body-Parser'); app.use(express.urlencoded({extended: true}));
+// body-Parser 라이브러리(input 태그에 적은 내용 해석 도와줌) 실행 app.use(express.urlencoded({extended: true}));
+// POST 요청으로 서버에 데이터 전송하려면 (1) body-Parser(input 태그에 적은 내용 해석 도와줌) 코드실행 app.use(express.urlencoded({extended: true})); (2) form데이터 input태그들에 name 쓰기 (3) 요청.body (ex: 요청.body.인풋 태그 name 속성의 값)라고 하면 form에서 보낸 자료 수신가능
+// 게시물 업로더 당사자에게만 게시물 삭제 권한 부여하기 위해 게시물 등록될 때 { 작성자: 요청.user._id } 값을 활용해 게시물 소유자 기록요
+// [ express-session & passport & passport-local ] ★★★★★ 코드 배치 순서가 실행을 좌우한다 app.get('/write', function(요청, 응답){}) 내부의 { 작성자: 요청.user._id } 코드에 대해 TypeError: Cannot read property '_id' of undefined
+// [ express-session & passport & passport-local ] ★★★★★ 코드 배치 순서가 실행을 좌우한다 app.get('/write', function(요청, 응답){}) 코드는 app.post('/login', function(요청, 응답){}) 코드와 더불어 이와 연계된 passport 세션 인증 코드가 끝나는 지점 이후에 위치해야 세션 인증 이후에 생성되는 요청.user._id 를 활용할 수 있음
+app.post('/write', function(요청, 응답){
+    
+  // console.log(요청.body.title)
+  // console.log(요청.body.date)
+  console.log('write POST 게시물 등록시 요청.user --------- ', 요청.user);
+
+  // Crud 기능: /write 페이지에서 form submit하여 /add로 POST 요청하면 todoapp 데이터베이스의 postCol 컬렉션에 해당 값 인서트
+  // 올바른 게시물 DB 넘버링 원칙 (마치 영구결번처럼): 삭제된 게시물일지라도 그 게시물의 넘버링 값은 유니크하게 유지되어야 함
+
+  db.collection('counterCol').findOne({name: '게시물갯수'}, function(에러, 결과){
+    let 총게시물갯수 = 결과.totalPost;
+
+    // 게시물 업로더 당사자에게만 게시물 삭제 권한 부여하기 위해 게시물 등록될 때 { 작성자: 요청.user._id } 값을 활용해 게시물 소유자 기록요
+    // [ express-session & passport & passport-local ] ★★★★★ 코드 배치 순서가 실행을 좌우한다 app.get('/write', function(요청, 응답){}) 내부의 { 작성자: 요청.user._id } 코드에 대해 TypeError: Cannot read property '_id' of undefined
+    // [ express-session & passport & passport-local ] ★★★★★ 코드 배치 순서가 실행을 좌우한다 app.get('/write', function(요청, 응답){}) 코드는 app.post('/login', function(요청, 응답){}) 코드와 더불어 이와 연계된 passport 세션 인증 코드가 끝나는 지점 이후에 위치해야 세션 인증 이후에 생성되는 요청.user._id 를 활용할 수 있음
+    let 업로드요청한게시물 = { _id: 총게시물갯수 + 1, 제목: 요청.body.title, 날짜: 요청.body.date, 작성자: 요청.user._id };
+    
+    // 인서트 직전 시점까지의 총게시물갯수를 counterCol에서 찾은 후 postCol에 인서트하면서 _id : 총게시물갯수+1로 넘버링 함
+    db.collection('postCol').insertOne(업로드요청한게시물, function(에러, 결과){
+      console.log('form submit 저장완료')
+
+      // crUd 기능: counterCol 컬렉션의 totalPost 항목도 1 증가시켜야 함 (즉, 1게시물 증가, 1카운터 증가)
+      // [Mongo DB 문법] 연산자(operator) 예시(그외많음): 변경은 { $set: { key: 바꿀값 } } / 증가는 { $inc { key: 기존값에 더해줄 값(음수도 가능)} } / 기존값보다 작을 때만 변경은 {$min : } {min : []} / key값 이름변경은 $rename 등등
+    
+      db.collection('counterCol').updateOne({ name: '게시물갯수' }, {$inc: { totalPost: 1}}, function(에러, 결과){
+        if(에러) return console.log('updateOne 에러 발생:', 에러);
+        
+        // ??? 재확인요: 두 번째 form submit 후에 총게시물갯수 콘솔로그값이 2가 나올 줄 알았는데 1이 나옴. 콘솔로그 위치문제? 콘솔로그 내용 자체 문제? 둘다?
+            console.log('총게시물갯수는', 총게시물갯수);
+      })
+    })
+  });  
+
+    // ?? 재확인요: 응답.send 대신에 응답.render로 list.ejs 페이지 연결하려는데 왜 Error: Failed to lookup view "./views/list.ejs" in views directory "./views" 이런 오류 나는지
+    // 작성페이지에서 submit 이후에 응답.render('list.ejs');코드로는 오류나고 응답.redirect('/list'); 코드로는 리스트페이지로 이동 성공??
+      // 응답.render('list.ejs');
+      // 응답.send('/add로 전송완료')
+      console.log('리다이렉트 직전')
+      응답.redirect('/list');
+      console.log('리다이렉트 직후')
+})
+
+// JQuery Min 버전(X: Slim Min) CDN 연동 후 JQuery 문법에 기반하여 AJAX 요청 구현(HTML에서 DELETE요청)
+// EJS, HTML 에서 AJAX 코드로 서버에 DELETE 요청 보낸 것을 express의 app.delete가 받아서 MongoDB로 DELETE 요청해줌
+// [ express-session & passport & passport-local ] ★★★★★ 코드 배치 순서가 실행을 좌우한다 app.delete('/delete', function(요청, 응답){} 코드는 app.post('/login', function(요청, 응답){}) 코드와 더불어 이와 연계된 passport 세션 인증 코드가 끝나는 지점 이후에 위치해야 세션 인증 이후에 생성되는 요청.user._id 를 활용할 수 있음
+app.delete('/delete', function(요청, 응답){
+  // AJAX로 DELETE 요청( 즉, $ajax({ }) )하면 게시물 번호( 즉, $ajax.( { method: , url: , _id: } ) 속에 담긴 _id 정보)도 서버에 보내주세요
+  // 주의: ejs 파일 내에서 사용자가 클릭한 삭제 버튼에 부여된 _id를 식별하기 위해 data-창작명 문법을 사용하는 올바른 문법은 data-소문자(언더바 가능)= / 틀린 문법은 data-카멜케이스와 마이너스 기호와 콜론(data-list--Id:)
+  // 요청.body로 들어오는 데이터는 list.ejs 코드의 button 태그 속성으로 data-소문자(언더바 가능)= 문법을 활용해 li_tag_data_id라고 창작한 속석명 앞에 data- 속성 지정 접두어를 붙여 data-li_tag_data_id= "<%= postResult[i]._id %>" 라고 보낸 데이터인 _id 값임
+  console.log('DELETE하기 위해 AJAX로 서버에 보내려는 데이터', 요청.body);
+  
+  // Object 자료 다루기 스킬 설명: AJAX 요청 코드에서 { data: { _id: 숫자 } } 문법으로 보냈지만 데이터 내부 처리 과정에서 epxress의 app.delete 함수에서 받은 요청.body에는 { _id: 문자형 숫자 } 자료형 변환 이뤄졌기에 parseInt(요청.body._id) 문법을 통해 다시 숫자 자료형으로 치환해야 함
+  요청.body._id = parseInt(요청.body._id);
+
+  // 게시물의 작성자 _id 와 로그인한 사용자의 _id 가 일치하면 게시물 삭제 기능 실행
+  // [ express-session & passport & passport-local ] ★★★★★ 코드 배치 순서가 실행을 좌우한다 app.delete('/delete', function(요청, 응답){} 코드는 app.post('/login', function(요청, 응답){}) 코드와 더불어 이와 연계된 passport 세션 인증 코드가 끝나는 지점 이후에 위치해야 세션 인증 이후에 생성되는 요청.user._id 를 활용할 수 있음
+  var 삭제할데이터 = { _id: 요청.body._id, 작성자: 요청.user._id };
+
+  // 요청.body에 담긴 게시물 번호에 따라 MongoDB에서 게시물 삭제
+  // [ MongoDB 문법 ] deleteOne( -어떤 항목을 삭제할지-, -DELETE요청 성공했을 때 실행할 내용-) 함수 문법으로 게시물 하나 삭제
+  // 요청.body._id 자료형은 숫자형(ejs파일 속 $.ajax함수) -> 문자형 숫자(js파일 속 express의 app.delete함수) -> 숫자형(js파일 속 MongoDB의 db.collection(' ').deleteOne함수)
+  db.collection('postCol').deleteOne(삭제할데이터, function(에러, 결과){
+            // db.collection('postCol').deleteOne(요청.body, function(에러, 결과){
+    
+    // 요청이 성공했다고 브라우저단( ejs파일의 $.ajax( { }).done( ).fail ( ) )에 알려주는 코드
+    // 중요: 서버는 꼭 뭔가 응답해줘야 함
+    // 요청에 대한 응답.내장함수는 한 번만 작성가능함 Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client 
+    // ★★★ 주의! - 상태코드를 무조건 .status(200) 으로 성공 처리시키는 논리적 허점 존재함
+    // ★★★ 주의! - [ JQuery & AJAX 문법 ] list.js 에서 $.ajax( { } ).done( ).fail( ) 코드 입장에서는 내가 보낸 요청에 대해 서버단에서 처리 성공했는지 실패했는지 모름
+    // ★★★ 주의! - [ JQuery & AJAX 문법 ] list.js 에서 $.ajax( { } ).done( ).fail( ) 코드에서 .fail() 부문 동작 확인하려고 무조건 .status(400) 으로 에러 던지게 테스트함 / db.collection('postCol').deleteOne(요청.body, function(에러, 결과){응답.status(400).send()}         
+    응답.status(200).send( { message: '$.ajax DELETE 요청 성공 from server'});
+
+    // [ MongoDB 문법 ] 현실적으로는 삭제 실패시 nodejs 터미널에 에러는 뜨지 않고 결과만 0 으로 나옴
+    console.log('app.delete /delete ---- deleteOne함수 에러 여부', 에러);
+    if(결과){ console.log('app.delete /delete ---- 결과.result.n --- 삭제된 결과물 수(게시물 소유자가 아니면 삭제 승인되지 않아 0개로 표시됨) ------', 결과.result.n)};
+  })
+});
