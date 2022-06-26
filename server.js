@@ -1,3 +1,5 @@
+// --- 코딩애플_Google Cloud로 5분만에 내 사이트 배포하자 ($300 무료 크레딧)
+
 // [ dotenv 라이브러리 문법 ] .env 파일을 package.json과 동일 폴더 계층에 두어야 함
 // [ dotenv 라이브러리 문법 ] 전체 코드의 최우선 순위로 dotenv 라이브러리를 인식시켜야 .env 파일에 별도 저장한 기밀 값들을 process.env.키값 문법을 통해 각 코드 파일들에서 불러와 각종 기능을 원활히 작동시킬 수 있음
 // [ dotenv 라이브러리 문법 ] npm install dotenv 명령어로 라이브러리 설치 및 등록 코드  후 대외비 환경변수 값을 .env 로 이전요
@@ -13,16 +15,6 @@ require('dotenv').config()
 const express = require('express');
     // import express from 'express';
 const app = express();
-
-// [ Javascript 문법(구버전) ] 다른 javascript 파일에서 코드를 사용할 수 있도록 module.exports = router; 로 코드를 내보내고, 다른 javascript 파일에서는 require('파일경로 또는 라이브러리명') 표기로 그 코드를 불러와 사용할 수 있음
-// [ Express 문법 ] app.use() 는 전역 미들웨어(즉, 요청과 응답 사이에 실행되는 코드) 사용하려고 사용하는 문법
-// [ Express 문법 ] app.use('/shop', require('./routes/shop.js')); 의 경우에는 사용자가 /shop 경로로 요청했을 때 미들웨어(본 실습에서는 shop.js 라우터) 를 적용해 주세요~    
-// [ Express 문법 - 차이 확인요 A ] 특정 라우터에 미들웨어 적용하고 싶으면 app.get('/mypage', 로그인했는지검사하는미들웨어, function(요청, 응답){} 구조로 미들웨어 삽입요
-// [ Express 문법 - 차이 확인요 B ] 특정 라우터에 미들웨어 적용하고 싶으면 라우팅 코드들(즉, app.use() 형태)보다 상단부 지점에 router.use('/어쩌구', 미들웨어함수명); 표기요 
-// [ Express 문법 ] 모든 라우터에 미들웨어 적용하고 싶으면 라우팅 코드들(즉, app.use() 형태)보다 상단부 지점에 router.use(미들웨어함수명); 표기요 
-app.use('/shop', require('./routes/shop.js'));
-    // [ Express 문법 ] app.use('/', require('./routes/shop.js')); 의 경우에는 사용자가 / 경로로 요청했을 때 미들웨어(본 실습에서는 shop.js 라우터) 를 적용해 주세요~
-    // app.use('/', require('./routes/shop.js'));
 
 // morgan 라이브러리 첨부와 사용
     // import morgan from 'morgan';
@@ -127,10 +119,98 @@ app.get('/', function(요청, 응답){
 })
 */
 
+// [ Javascript 문법(구버전) ] 다른 javascript 파일에서 코드를 사용할 수 있도록 module.exports = router; 로 코드를 내보내고, 다른 javascript 파일에서는 require('파일경로 또는 라이브러리명') 표기로 그 코드를 불러와 사용할 수 있음
+// [ Express 문법 ] app.use() 는 전역 미들웨어(즉, 요청과 응답 사이에 실행되는 코드) 사용하려고 사용하는 문법
+// [ Express 문법 ] app.use('/shop', require('./routes/shop.js')); 의 경우에는 사용자가 /shop 경로로 요청했을 때 미들웨어(본 실습에서는 shop.js 라우터) 를 적용해 주세요~    
+// [ Express 문법 - 차이 확인요 A ] 특정 라우터에 미들웨어 적용하고 싶으면 app.get('/mypage', 로그인했는지검사하는미들웨어, function(요청, 응답){} 구조로 미들웨어 삽입요
+// [ Express 문법 - 차이 확인요 B ] 특정 라우터에 미들웨어 적용하고 싶으면 라우팅 코드들(즉, app.use() 형태)보다 상단부 지점에 router.use('/어쩌구', 미들웨어함수명); 표기요 
+// [ Express 문법 ] 모든 라우터에 미들웨어 적용하고 싶으면 라우팅 코드들(즉, app.use() 형태)보다 상단부 지점에 router.use(미들웨어함수명); 표기요 
+app.use('/shop', require('./routes/shop.js'));
+    // [ Express 문법 ] app.use('/', require('./routes/shop.js')); 의 경우에는 사용자가 / 경로로 요청했을 때 미들웨어(본 실습에서는 shop.js 라우터) 를 적용해 주세요~
+    // app.use('/', require('./routes/shop.js'));
+
 app.get('/', function(요청, 응답){
-  // 주의: ejs 엔진이 views 폴더 찾아갈 수 있도록 app.set('views', './views') 코드 작성했으므로 index.ejs 파일에 대한 경로를 views/index.ejs라고 적는 것은 views/views/index.ejs를 찾으라는 말이 되므로 주의
-    응답.render('index.ejs');
+    // 주의: ejs 엔진이 views 폴더 찾아갈 수 있도록 app.set('views', './views') 코드 작성했으므로 index.ejs 파일에 대한 경로를 views/index.ejs라고 적는 것은 views/views/index.ejs를 찾으라는 말이 되므로 주의
+      응답.render('index.ejs');
+  });
+
+// [ Express 문법 ] ★★★ GET 요청 처리용 라우터(즉, app.get() 형태)가 전역 라우터인 app.use() 형태로 잘못 지정되어 있어 파일 업로드 기능이 동작하지 않고 upload.ejs 페이지만 보여줬음
+app.get('/upload', function(요청, 응답){
+  응답.render('upload.ejs')
+});
+
+// 사용자의 업로드 파일은 작업폴더(본 실습에서는 /public/image 폴더)나 일반하드(클라우드 서비스)에 저장함(즉, DB 에 저장하지 않음)
+// [ Multer 문법 ] npm i multer 명령어로 설치 / upload.ejs 의 enctype="multipart/form-data" 속성 데이터 전송과 처리를 도와주는 라이브러리
+// [ Multer 문법 ] Multer 설치 및 사용
+let multer = require('multer');
+
+// [ Node js 문법 ] path라는 변수는 nodejs 기본 내장 라이브러리 path 라는걸 활용해 var path = require('path'); 형태로 표기하여 사용하며 파일의 경로, 이름, 확장자 등을 알아낼 때 사용합니다. 
+// [ Node js 문법 & Multer 문법 ] nodejs 기본 내장 라이브러리에 기반한 path 라는 변수는 특정 확장자 파일만 업로드 허용하기 위한 코드 multer({ fileFilter: function (req, file, callback) { var ext = path.extname(file.originalname); } }) 에서 활용됨
+var path = require('path');
+
+const multerStorageSetting = multer.diskStorage({
+  // [ Multer 문법 ] Multer 라이브러리 통한 저장매체를 diskStroge 속성으로 지정하고 저장경로는 작업폴더(본 실습에서는 /public/image 폴더)로 설정
+  destination: function(req, file, cb){
+    // [ Github 문법 ] .gitignore 파일에 /public/image 명시하여 github 로 push 되는 것 방지
+    cb(null, './public/image')
+  },
+  // [ Multer 문법 ] 업로드한 파일을 랜덤파일명이 아니라 원본파일명으로 저장하도록 설정
+  // [ Multer 문법 ] 파일명과 확장자 동일한 파일 어떻게 구별? 
+  // [ Multer 문법 ] Wetube 에서는 파일명 속성 별도 지정 안했더니 랜덤파일명 부여 방식으로 Multer 구동되었음
+  filename: function(req, file, cb){
+    // [ Multer 문법 - 해결법 확인요 ] ★★★ 한글은 완전히 깨져서 저장됨
+    cb(null, file.originalname)
+    
+    // [ Multer 문법 - 올바른 기법 재확인요 ] ★★★ Error: ENOENT: no such file or directory, open 'D:\200 IT 트레이닝\220609 nomadcoder\all_that_javascript\yd_code_js\todoapp\public\image\pexels-yuri-manei-3131819.jpg날짜Mon Jun 27 2022 01:35:45 GMT+0900 (대한민국 표준시)'
+    // cb(null, file.originalname + '날짜' + new Date())
+  },
+});
+
+// var multerUpload = multer({ storage: multerStorageSetting });
+var multerUpload = multer({ 
+  // [ Multer 문법 ] 저장매체를 multer.diskStorage({ }) 지정하고 그 내부에 저장경로와 파일명 작명 방식을 지정한 내용을 storage 라는 키값에 설정함
+  storage: multerStorageSetting,
+  
+  // [ Node js 문법 & Multer 문법 ] 특정 확장자 파일만 업로드 허용
+  fileFilter: function (req, file, callback) {
+    // [ Node js 문법 ] path라는 변수는 nodejs 기본 내장 라이브러리 path 라는걸 활용해 var path = require('path'); 형태로 표기하여 사용하며 파일의 경로, 이름, 확장자 등을 알아낼 때 사용합니다. 
+    // [ Node js 문법 & Multer 문법 ] nodejs 기본 내장 라이브러리에 기반한 path 라는 변수는 특정 확장자 파일만 업로드 허용하기 위한 코드 multer({ fileFilter: function (req, file, callback) { var ext = path.extname(file.originalname); } }) 에서 활용됨
+    var ext = path.extname(file.originalname);
+    if(ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
+        return callback(new Error('PNG, JPG만 업로드하세요'))
+    }
+    callback(null, true)
+  },
+
+  // [ Multer 문법 ] limits는 파일의 사이즈 제한을 걸고 싶을 때 씁니다. 
+  limits:{
+    // [ Multer 문법 ] MulterError: File too large
+    // [ Multer 문법 ] 1024 * 1024는 pixel 이 아니라 용량
+    // [ Multer 문법 ] 1024 * 1024는 1MB 해당함 (즉, 1 Byte 단위로 표기되므로 1 Byte * 1024 = 1 KBytes 이고, 1 KBytes * 1024 = 1 MBytes 임)    
+    fileSize: 1024 * 1024 * 3
+  }
+});
+
+// [ Multer 문법 ★★★ ] multerUpload.single('multerInput') 코드는 upload.ejs 의 <form method="POST" action="/upload" enctype="multipart/form-data"> 입력폼 내의 multerInput 이라는 이름의 <input type="file"> 값에 단일 파일(즉, single)을 담아 /public/image 폴더 이하에 업로드하고 req.file 을 추가함
+// app.post('/upload', multerUpload.single('multerInput'), function(요청, 응답){
+
+// [ Multer 문법 ★★★ ] upload.ejs 의 input 태그에 multiple 속성을 표기하여 <input type="file" name='multerInput' multiple> 형태로 설정하면, server.js 의 multerUpload.array('multerInput', 한꺼번에업로드허용할파일갯수) 코드를 통해 지정한 갯수만큼 파일을 한꺼번에 업로드 가능함 / 업로드 갯수 초과시 MulterError: Unexpected field 에러 발생함
+app.post('/upload', multerUpload.array('multerInput', 2), function(요청, 응답){
+  응답.send('업로드완료');
 })
+
+// [ Node js 문법 & Multer 문법 ] 업로드한 이미지 보여주기
+// [ Node js 문법 ] 본 코드가 적혀있는 sever.js 의 현재경로는 __dirname 형태로 표기 가능
+// [ Express 문법 ] :parameter 문법 사용시 한글 작명은 오류 발생하므로 영문으로 작명요
+// [ Express 문법 ] 실제로는 이미지 파일들이 ./public/image/ 경로에 저장돼 있는데, 라우팅 기법 상으로는 ./image/ 경로에서 이미지 호출하도록 라우팅 지정함
+app.get('/image/:imageName', function(요청, 응답){
+
+  // [ 경로 표기 주의 ] /public/image/ 라고 표기해야 하는데 슬래시가 마지막에 누락돼 /public/image 라고 표기해 image 폴더명과 imageName 파일명 사이에 경로 구분이 제대로 되지 않아 이미지 보여주기 오류 발생함
+  // ejs 파일에서 <img src="/image/저장된파일명.확장자"> 형태로 이미지 보여줄 수 있음
+  
+  응답.sendFile( __dirname + '/public/image/' + 요청.params.imageName);
+})
+
 
 // cRud 기능: /list 경로로 GET 요청하면 응답.render 코드에 담긴 ejs 파일을 렌더링하여 MongoDB 데이터들로 꾸며진 html을 보여줌
 app.get('/list', function(요청, 응답){

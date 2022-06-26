@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-    <title>상세페이지</title>
+    <title>업로드 페이지</title>
 
     <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
     <link rel="stylesheet" href="/public/main.css">
@@ -16,28 +16,31 @@
   </head>
 
   <body>
-   
+
     <!-- [ EJS 문법 ] (본 EJS 파일위치 기준으로 상대경로) nav.html을 첨부해 주세요 -->
     <%- include('nav.html') %>
 
-     <!-- [ 부트스트랩 문법 ] class명으로 container 부여시 내용물을 가운데 정렬해줌-->
+    <!-- [ 부트스트랩 문법 ] class명으로 container 부여시 내용물을 가운데 정렬해줌-->
     <div class="container mt-4">
 
       <!-- [ 부트스트랩 문법 ] class명으로 text-center 부여시 글자 태그를 가운데 정렬해줌-->      
-      <h4 class="text-center">상세페이지</h4>
+      <h4 class="text-center">업로드 페이지</h4>
+      
+      <!-- [ Javascript 문법 ] 서버로 폼 데이터 전송하는 방식 지정 - URL 인코딩(base64) 방식 전송시(용량 1.3배 증가됨)에는 enctype="application/x-www-form-urlencoded" -->
+      <!-- [ Javascript 문법 ] 서버로 폼 데이터 전송하는 방식 지정 - 파일(이미지, 문서, 음성, 영상) 전송시에는 인코딩하지 말고 그대로 전송하는 enctype="multipart/form-data" -->
+      <form method="POST" action="/upload" enctype="multipart/form-data">
+        <!-- [ Javascript 문법 ] type="file" 지정하여 이미지 파일 전송하는 input 태그로 설정  -->
         
-      <div class="card" style="width: 100%;">
-        <div class="card-body">
-          <!-- [ EJS 문법] 서버에서 응답.render('detail.ejs', { detailResult: 결과}); 라고 작성한 코드의 value(즉, 결과) 값을 EJS 문법으로 받아서 상세페이지 상에 나타내줌 -->
-          <h5 class="card-title"> <%= detailResult.제목 %> </h5>
-          <h6 class="card-subtitle mb-2 text-muted"> <%= detailResult.날짜 %> </h6>
-
-          <p class="card-text">Cheer-Up!!</p>
-          <a href="/edit/<%= detailResult._id %>" class="card-link"><button class="delete btn btn-secondary">수정</button></a>
-        </div>
-      </div>
-
+        <!-- [ Multer 문법 ★★★ ] upload.ejs 의 input 태그에 multiple 속성을 표기하지 않은 <input type="file" name='multerInput'> 형태로 설정하면, server.js 의 multerUpload.single('multerInput') 코드를 통해 한 번에 1개의 파일(단일 파일)만 업로드 가능함 --> 
+        <!-- <input type="file" name='multerInput'> -->
+        
+        <!-- [ Multer 문법 ★★★ ] upload.ejs 의 input 태그에 multiple 속성을 표기하여 <input type="file" name='multerInput' multiple> 형태로 설정하면, server.js 의 multerUpload.array('multerInput', 한꺼번에업로드허용할파일갯수) 코드를 통해 지정한 갯수만큼 파일을 한꺼번에 업로드 가능함 / 업로드 갯수 초과시 MulterError: Unexpected field 에러 발생함  -->
+        <input type="file" name='multerInput' multiple>
+        <p> (한꺼번에 최대 2개 파일, 파일당 3MB 이하 용량 업로드 가능)</p>
+        <button type="submit">전송</button>
+      </form>
     </div>
+
     <!-- Optional JavaScript; choose one of the two! -->
 
     <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
