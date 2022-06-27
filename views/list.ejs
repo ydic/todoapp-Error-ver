@@ -36,7 +36,7 @@
     <script>
       // JQuery 코드가 정상 동작하려면 head 태그에서 jquery-3.5.1.min.js 호출해 놓아야 함
       $('#search').click(function(){
-        // input 태그에 사용자가 입력한 값
+        // [ JQuery 문법^^ ] input 태그에 사용자가 입력한 값
         const 입력한값 = $('#search-input').val()
 
         // [ Web API 문법 ] GET 요청과 동일한 기능을 하는 window.location.replace('/url') 코드로 현재 페이지 URL 값을 강제 변경시킴
@@ -83,7 +83,7 @@
       $('.chat').click(function(e){
         // [ AJAX 문법^^ ] $.ajax   /   $.post()   /   $.get() 
         // [ Javascript 문법^^ ] this 문법에 대한 차이가 function(){} 문법과 ()=>{} 문법 사이에 존재함(상세내용 확인요)
-        // [ Javascript 문법^^ ] 프론트엔드단 자바스크립트 코드는 사용자가 위조하기 쉬우므로 최소한의 정보로만 서버에 전송요(즉, 그 정보를 토대로 세부정보들은 서버 내에서 자체 검색 가능)
+        // [ Javascript 문법^^ ] 프론트엔드단 자바스크립트 코드는 사용자가 위조/변조하기 쉬우므로 최소한의 정보로만 서버에 전송요(즉, 그 정보를 토대로 세부정보들은 서버 내에서 자체 검색 가능)
         // 내가 누른 요소(e.target)에 숨겨진 data-li_tag_writer_id 값을 가져와(dataset.li_tag_writer_id) 주세요
         var writerId = e.target.dataset.li_tag_writer_id
         $.post('/chatroom', {당한사람id : writerId}).then(() => {

@@ -736,3 +736,20 @@ app.get('/chat', 로그인했는지검사하는미들웨어, function(요청, �
   })
 })
 
+// [ Express 문법^^ ] chat.ejs 에서 전송 버튼 클릭하여 최소정보송신용꾸러미(즉, 송신하려는메시지 와 지금누른채팅방id) 를 $.post('/message', 최소정보송신용꾸러미).then(() => {}) 코드를 통해 서버로 전송함
+// [ Express 문법^^ ] 메시지송신자id /  날짜 값 / chat.ejs 로부터 받은 송신하려는메시지 / chat.ejs 로부터 받은 지금누른채팅방id 를 messageCol 에 저장함
+app.post('/message', 로그인했는지검사하는미들웨어, function(요청, 응답){
+  
+  var 송신발저장용꾸러미 = {
+    parent: 요청.body.parent, // chat.ejs 로부터 받은 지금누른채팅방id
+    content: 요청.body.content, // chat.ejs 로부터 받은 송신하려는메시지
+    senderid: 요청.user._id, // 메시지송신자id
+    date: new Date(), // 날짜
+  }
+  console.log('server.js ---- 송신발저장용꾸러미 ----', 송신발저장용꾸러미);
+
+  db.collection('messageCol').insertOne(송신발저장용꾸러미).then(() => {
+    응답.send('messageCol 에 송신발저장용꾸러미 저장 성공');
+    console.log('messageCol 에 송신발저장용꾸러미 저장 성공');
+  })
+})
