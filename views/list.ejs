@@ -70,10 +70,27 @@
             <!-- [ 부트스트랩 문법 ] class명으로 btn btn-danger 부여시 빨간색 버튼 모양 만들어줌 -->
             <button class="delete btn btn-danger" data-li_tag_data_id= "<%= postResult[i]._id %>">삭제</button>
             <a href="/edit/<%= postResult[i]._id %>"><button class="delete btn btn-secondary">수정</button></a>
+            
+            <!-- [ HTML 문법^^ ] 채팅 버튼 만들고 이를 특정하기 위해 class="chat" 부여 -->
+            <button class="chat btn btn-info" data-li_tag_writer_id= "<%= postResult[i].작성자 %>">채팅</button>
           </li>
         <% } %>
       </ul>
     </div>
+
+    <!-- [ JQuery 문법^^ ] <button class="chat">채팅</button> 을 클릭하면 ajax 요청하여 서버에 채팅당한사람(즉,작성자)id값(즉, _id)을 전달함 -->
+    <script>
+      $('.chat').click(function(e){
+        // [ AJAX 문법^^ ] $.ajax   /   $.post()   /   $.get() 
+        // [ Javascript 문법^^ ] this 문법에 대한 차이가 function(){} 문법과 ()=>{} 문법 사이에 존재함(상세내용 확인요)
+        // [ Javascript 문법^^ ] 프론트엔드단 자바스크립트 코드는 사용자가 위조하기 쉬우므로 최소한의 정보로만 서버에 전송요(즉, 그 정보를 토대로 세부정보들은 서버 내에서 자체 검색 가능)
+        // 내가 누른 요소(e.target)에 숨겨진 data-li_tag_writer_id 값을 가져와(dataset.li_tag_writer_id) 주세요
+        var writerId = e.target.dataset.li_tag_writer_id
+        $.post('/chatroom', {당한사람id : writerId}).then(() => {
+          console.log('채팅 버튼 클릭 이벤트 발생으로 채팅 당한사람id(즉, 작성자)', writerId)
+        })
+      })
+    </script>
 
         <!-- 
         [ EJS / HTML 문법 ] 서버에 직접적으로 DELETE, PUT 요청 불가 (GET, POST 요청만 가능) 

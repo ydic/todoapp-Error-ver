@@ -699,3 +699,40 @@ app.delete('/delete', function(요청, 응답){
     if(결과){ console.log('app.delete /delete ---- 결과.result.n --- 삭제된 결과물 수(게시물 소유자가 아니면 삭제 승인되지 않아 0개로 표시됨) ------', 결과.result.n)};
   })
 });
+
+// [ Mongo DB 문법^^ ] 형변환을 위한 ObjectId() 문법을 사용하려면 코드 상단부에 const { ObjectId } = require('mongodb'); 기능 사용 명시요
+const { ObjectId } = require('mongodb');
+
+// [ Express 문법^^ ] 채팅 기능 코드가 배치돼야 할 위치는 passport 세션 인증 기반의 로그인 기능 코드 하단부에 위치해야 정상 동작함
+// list.ejs 로부터 채팅 버튼 클릭 이벤트 발생으로 채팅 당한사람id(즉, 작성자) 값을 받아와 로그인했는지검사하는미들웨어를 거친후 서버에 전달해 당한사람(즉, 요청.body.당한사람.id)과 건사람(즉, 요청.user._id) 사이에 채팅방 개설
+app.post('/chatroom', 로그인했는지검사하는미들웨어, function(요청, 응답){
+
+  var 개설할채팅방정보 = {
+    title: 'aaaaa',
+    // [ Mongo DB 문법^^ ] String 형태인 요청.body.당한사람id 값(즉, "62b9216e37eec08ddc82a0bd")을 Object 형으로 변경요
+    // [ Mongo DB 문법^^ ] 형변환을 위한 ObjectId() 문법을 사용하려면 코드 상단부에 const { ObjectId } = require('mongodb'); 기능 사용 명시요
+    member: [ObjectId(요청.body.당한사람id), 요청.user._id],
+            // member: [요청.body.당한사람id, 요청.user._id],
+    date: new Date()
+  }
+
+  // [ Mongo DB 문법^^ ] insertOne 쿼리문 내에 콜백함수 작성하는 대신에 .insertOne().then() 문법으로 대체 사용 가능
+  db.collection('chatroomCol').insertOne(개설할채팅방정보).then((결과)=>{
+    
+    // 브라우저에서 안보이는데???
+    응답.send('채팅방개설성공');
+
+    console.log(`채팅방개설성공 - ${요청.user._id} 사용자가 ${요청.body.당한사람id} 사용자에게 `);
+  })
+})
+
+// [ Express 문법^^ ] /chat 접속시 채팅방 내부 페이지인 chat.ejs 보여주기
+app.get('/chat', 로그인했는지검사하는미들웨어, function(요청, 응답){
+  
+  // [ Mongo DB 문법^^ ] /chat 접속시 내가 속한 모든 채티방 목록도 보여주기(즉, chatroom member 항목)
+  // [ Mongo DB 문법^^ ] array (즉, 배열 형태로 생긴 member: [어쩌구, 어쩌구] ) 내부에서 한 개의 속성에 대해 검색하는 경우에 한하여 별도 쿼리문 활용하지 않고 .find({ member: 요청.user._id }) 형태로 쿼리 가능
+  db.collection('chatroomCol').find({ member: 요청.user._id }).toArray().then((결과)=>{
+    응답.render('chat.ejs', { myChatroomList: 결과 });
+  })
+})
+
