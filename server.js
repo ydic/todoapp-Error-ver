@@ -549,7 +549,7 @@ passport.use(new LocalStrategy({
       if(에러) return done(에러)
       
       // ?? 코애 질문:  message 오브젝트는 어디에서 넘겨받으라고? fail.ejs?
-      if(!결과) return done(null, flase, { message: '존재하지 않는 ID 입니다'})
+      if(!결과) return done(null, false, { message: '존재하지 않는 ID 입니다'})
 
       // 주의: 보안에 취약한 코드 구조(pw가 암호화되지 않음 - 예: hash함수 적용된 암호끼리 일치여부 대조요)라는 문제점
       // [ Javascript 문법 ] == 등호와 === 등호
