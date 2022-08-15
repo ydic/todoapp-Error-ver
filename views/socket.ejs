@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
+    <title>검색 결과 페이지</title>
+
+    <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
+    <link rel="stylesheet" href="/public/main.css">
+    
+    <!-- JQuery 코드가 정상 동작하려면 head 태그에서 JQuery 호출해 놓아야 함  -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    
+    <!-- // [ socket.io 문법** ] ★★★ CDN 방식 socket.io URL 링크로 HTML단에 연결할 때 body 태그 최하단부에 적었더니 인식 불가(즉, io is not defined)이므로 head 태그 내애 CDN 링크 URL 첨부요 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
+  </head>
+  <body>
+  <!--  // [ socket.io 문법** ] 서버<->유저 양방향 통신가능 WebSocket
+        // [ socket.io 문법** ] 서버 ->유저 일방적 통신가능 SSE (Sever Sent Event)
+        // [ socket.io 문법** ] npm install socket.io 
+        // [ socket.io 문법** ] 브라우저 호환성 문제 없는 socket.io 로 WebSocket 사용함 (Vanilla Javascript 코드로도 WebSocket 열 수 있지만 브라우저 호환성 문제 있음)
+        // [ socket.io 문법** ] ★★★ WebSocket 은 서버 뿐만 아니라 사용자 HTML 에도 설정(socket.io CDN 방식 URL 링크로 연동) 해야 함
+        // <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js" integrity="sha512-9mpsATI0KClwt+xVZfbcf2lJ8IFBAwsubJ6mI3rtULwyM3fBmQFzj0It4tGqxLOGQwGfJdk/G+fANnxfq9/cew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        // [ socket.io 문법** ] socket.io 라이브러리 호출 및 사용 코드는 const app = express(); 코드 하단에 위치해야 함
+        // [ socket.io 문법** ] ★★★ 코드 상단부에서 socket.io 호출하면서 변수를 const http = require('http').createServer(app); 라고 지정했으므로 기존 app.listen() 표기를 http.listen() 표기로 변경해야 함 -->
+    
+    <div>채팅방</div>
+
+    <input id='socketio-chat-input'>
+
+    <div id="socketio-chat-content"></div>
+
+    <button id="ioHtmlSend">서버에 메시지 보내기</button>
+
+    <button id="ioHtmlRoom-1">채팅방1 입장</button>
+    <button id="ioHtmlRoom-1-send">채팅방1 에서 메시지 보내기</button>
+
+    <script>
+      // [ socket.io 문법** ] HTML 단의 사용자는 var socket = io(); 코드 통해서 WebSocket 접속할 수 있음
+      var socket = io();
+
+      $('#ioHtmlRoom-1').click(function(){
+        // [ socket.io 문법** ] socket 으로 GET/POST 요청 대체 가능
+        socket.emit('join-room-1', '채팅방 입장 처리 요청')
+      })
+
+      $('#ioHtmlRoom-1-send').click(function(){
+        // [ socket.io 문법** ] socket 으로 GET/POST 요청 대체 가능
+        socket.emit('room-1-send', '채팅방1 로 메시지 전송')
+      })
+
+      $('#ioHtmlSend').click(function(){
+        // [ socket.io 문법** ] socket.emit('이벤트명작명','메시지') 코드로 서버에게 WebSocket 으로 실시간 메시지 전송 가능함
+        // socket.emit('user-send','안녕하세요')
+
+        // [ JQuery 문법** ] $('#socketio-chat-input').val() 코드로input 태그에 사용자가 입력한 값을 받아올 수 있음
+        socket.emit('user-send', $('#socketio-chat-input').val())
+
+        // [ socket.io 문법** 양방향 중 유저->서버->유저 ] 메시지 수신하려면 이벤트 리스너인 socket.on() 함수 사용해야 함
+        // [ socket.io 문법** 양방향 중 유저->서버->유저 ] 서버단(즉, server.js) 에서 io.emit('broadcast', '메시지') 코드로 HTML단에 실시간 메시지 보낼 수 있도록 환경이 설정되어 있으므로 이벤트 리스너인 socket.on() 함수로 메시지 수신할 수 있음
+        // ★★★★★★ 긴급 해결요 ★★★★★★★
+        // [ MongoDB 문법^^ Change Stream ] DB변동사항 실시간 감시해 브라우저단에 표시해 주도록 만든 상태인 것은 좋은 일
+        // [ MongoDB 문법^^ Change Stream ] 그러나 chatroomCol 에 두 명의 사용자가 참여했음에도 유일한 한 개의 방이 아니라 당한사람 입장, 건사람 입장에서 각각 방을 생성시켜 동작하는 상황이라 해결요(다행인 것은 DB에도 브라우저에도 송신한 메시지들은 다 반영이 되는 상황)
+        // ★★★★★★★★★ 버그 이슈1: 두 브라우저 콘솔에서 양쪽 모두 잘 찍히긴 하는데 한쪽에서 왜 초반에 먹통?(node js 콘솔로그는 누락없이 다 찍히는 것으로 보아 브라우저의 어떤 특성에 기인?)
+        // ★★★★★★★★★ 버그 이슈2: 두 시크릿 브라우저 간에 메시지 보낼수록 같은 메시지값이 여러번 찍히는데 그 갯수가 증가하면서 찍히는 이유?
+        // ★★★★★★★★★ 버그 이슈3: DB 저장(chatroomCol / messageCol) 은 안되는 실시간 메시지 전송 기법인건가? 라이브러리 메뉴얼에 별도 DB연동 기법이 있을수도?
+        socket.on('broadcast', function(dataSeverSent){
+          console.log('socket.ejs ----- socket.on() ---- dataServerSent', dataSeverSent);
+
+          $('#socketio-chat-content').append(`<div> ${dataSeverSent} </div>`)
+        })
+      })
+    </script>
+
+      
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    
+    <!-- HTML에서 서버에 DELETE 요청 보내기 위해 JQuery 문법 기반으로 AJAX 요청 코드를 작성해야 함. JQuery Min 버전을 CDN으로 연동해야 하므로 부트스트랩 기본값인 JQuery Slim Min 연동 코드는 주석처리함  -->
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+    
+    <!-- // [ socket.io 문법** ] ★★★ WebSocket 은 서버 뿐만 아니라 사용자 HTML 에도 설정(socket.io CDN 방식 URL 링크로 연동) 해야 함 -->
+    <!-- // [ socket.io 문법** ] ★★★ CDN 방식 URL 링크로 HTML단에 연동하려는 socket.io 버전은 서버에 설치한 버전(즉, npm install socket.io)과 동일해야 함(package.json 에서 확인 가능 / 220628 기준 내 경우는 "socket.io": "^4.5.1") -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js" integrity="sha512-9mpsATI0KClwt+xVZfbcf2lJ8IFBAwsubJ6mI3rtULwyM3fBmQFzj0It4tGqxLOGQwGfJdk/G+fANnxfq9/cew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+    
+    
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
+    -->
+  </body>
+</html>
