@@ -1,39 +1,51 @@
 <!doctype html>
 <html>
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>상세페이지</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-    <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
-    <link rel="stylesheet" href="/public/main.css">
+  <title>상세페이지</title>
 
-  </head>
+  <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
+  <link rel="stylesheet" href="/public/main.css">
 
-  <body>
-   
-    <!-- [ EJS 문법 ] (본 EJS 파일위치 기준으로 상대경로) nav.html을 첨부해 주세요 -->
-    <%- include('nav.html') %>
+</head>
 
-     <!-- [ 부트스트랩 문법 ] class명으로 container 부여시 내용물을 가운데 정렬해줌-->
+<body>
+
+  <!-- [ EJS 문법 ] (본 EJS 파일위치 기준으로 상대경로) nav.html을 첨부해 주세요 -->
+  <%- include('nav.html') %>
+
+    <!-- [ 부트스트랩 문법 ] class명으로 container 부여시 내용물을 가운데 정렬해줌-->
     <div class="container mt-4">
 
-      <!-- [ 부트스트랩 문법 ] class명으로 text-center 부여시 글자 태그를 가운데 정렬해줌-->      
+      <!-- [ 부트스트랩 문법 ] class명으로 text-center 부여시 글자 태그를 가운데 정렬해줌-->
       <h4 class="text-center">상세페이지</h4>
-        
+
       <div class="card" style="width: 100%;">
         <div class="card-body">
           <!-- [ EJS 문법] 서버에서 응답.render('detail.ejs', { detailResult: 결과}); 라고 작성한 코드의 value(즉, 결과) 값을 EJS 문법으로 받아서 상세페이지 상에 나타내줌 -->
-          <h5 class="card-title"> <%= detailResult.제목 %> </h5>
-          <h6 class="card-subtitle mb-2 text-muted"> <%= detailResult.날짜 %> </h6>
+          <h5 class="card-title">
+            <%= detailResult.제목 %>
+          </h5>
+          <h6 class="card-subtitle mb-2 text-muted">
+            <%= detailResult.날짜 %>
+          </h6>
 
           <p class="card-text">Cheer-Up!!</p>
-          <a href="/edit/<%= detailResult._id %>" class="card-link"><button class="delete btn btn-secondary">수정</button></a>
+
+          <p class="card-text">작성자: <%= detailResult.작성자 %>
+              <p class="card-text">아이디: <%= detailResult.아이디 %>
+
+              </p>
+              <a href="/edit/<%= detailResult._id %>" class="card-link"><button
+                  class="delete btn btn-secondary">수정</button></a>
         </div>
       </div>
 
@@ -41,11 +53,13 @@
     <!-- Optional JavaScript; choose one of the two! -->
 
     <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
-    
+
     <!-- HTML에서 서버에 DELETE 요청 보내기 위해 JQuery 문법 기반으로 AJAX 요청 코드를 작성해야 함. JQuery Min 버전을 CDN으로 연동해야 하므로 부트스트랩 기본값인 JQuery Slim Min 연동 코드는 주석처리함  -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+      crossorigin="anonymous"></script>
 
     <!-- Option 2: Separate Popper and Bootstrap JS -->
     <!--
@@ -53,5 +67,6 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
     -->
-  </body>
+</body>
+
 </html>

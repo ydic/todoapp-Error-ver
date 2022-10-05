@@ -1,33 +1,50 @@
 <!doctype html>
 <html>
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>홈</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-    <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
-    <link rel="stylesheet" href="/public/main.css">
-  </head>
-  <body>
-    
-    <!-- [ EJS 문법 ] (본 EJS 파일위치 기준으로 상대경로) nav.html을 첨부해 주세요 -->
-    <%- include('nav.html') %>
+  <title>홈</title>
+
+  <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
+  <link rel="stylesheet" href="/public/main.css">
+</head>
+
+<body>
+
+  <!-- [ EJS 문법 ] (본 EJS 파일위치 기준으로 상대경로) nav.html을 첨부해 주세요 -->
+  <%- include('nav.html') %>
 
     <h4 class="text-center">홈입니다</h4>
 
+
+    <!-- ★★★★★★★★★★★★★★★★★★★★★★★★ -->
+    <!-- 이렇게 해서 express + ejs 서버에서 ejs 파일 변수 에러처리를 하는 방법을 알아봤습니다.
+    <% if (locals.title) { %>
+      <%= title %>
+    <% } else { %> 해당 값을 불러오지 못함 <% } %> -->
+
+    <p class="text-center">
+      <%= loginSucceeded %>
+    </p>
+
+
     <!-- HTML에서 서버에 DELETE 요청 보내기 위해 JQuery 문법 기반으로 AJAX 요청 코드를 작성해야 함. JQuery Min 버전을 CDN으로 연동해야 하므로 부트스트랩 기본값인 JQuery Slim Min 연동 코드는 주석처리함  -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    
+
     <!-- Optional JavaScript; choose one of the two! -->
 
     <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+      crossorigin="anonymous"></script>
 
     <!-- Option 2: Separate Popper and Bootstrap JS -->
     <!--
@@ -35,5 +52,6 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
     -->
-  </body>
+</body>
+
 </html>

@@ -1,26 +1,29 @@
 <!doctype html>
 <html>
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>리스트 페이지</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 
-    <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
-    <link rel="stylesheet" href="/public/main.css">
-    
-    <!-- JQuery 코드가 정상 동작하려면 head 태그에서 JQuery 호출해 놓아야 함  -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <title>리스트 페이지</title>
 
-  </head>
-  <body>
+  <!-- CSS 파일 첨부 / CSS 파일은 public 폴더 안에 저장하여 관리함  -->
+  <link rel="stylesheet" href="/public/main.css">
 
-    <!-- [ EJS 문법 ] (본 EJS 파일위치 기준으로 상대경로) nav.html을 첨부해 주세요 -->
-    <%- include('nav.html') %>
+  <!-- JQuery 코드가 정상 동작하려면 head 태그에서 JQuery 호출해 놓아야 함  -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+</head>
+
+<body>
+
+  <!-- [ EJS 문법 ] (본 EJS 파일위치 기준으로 상대경로) nav.html을 첨부해 주세요 -->
+  <%- include('nav.html') %>
 
     <!-- [ 부트스트랩 문법 ] class명으로 text-center 부여시 글자 태그를 가운데 정렬해줌-->
     <h4 class="ml-2 my-3 text-center">서버에서 가져온 할일 리스트</h4>
@@ -29,18 +32,18 @@
     <!-- [ Web API 문법 ] 검색기능 코드 논리 순서 : 검색 버튼 누르면 서버에게 데이터 전달(일반적으로는 POST 요청으로 전달하지만 본 실습에서는 Query String 기법(즉, ?데이터명=데이터값 )을 통해 URL 을 잘 작성하여 GET 요청으로 전달하는 방법을 학습) -> 서버는 DB에서 사용자가 검색요청한 데이터 꺼내줌 -> ejs 파일로 보내서 사용자에게 쿼리결과 보여줌 -->
     <div class="container input-group mb-2">
       <!-- [ Web API 문법 ] Query String 기법으로 GET 요청을 서버에 보내 검색기능 구현하기 위해 input 태그에 id='search-input' / 검색 버튼에 id='search' 부여 -->
-      <input id ='search-input' class="form-control">
+      <input id='search-input' class="form-control">
       <button id='search' class="input-group-append btn btn-danger">검색</button>
     </div>
 
     <script>
       // JQuery 코드가 정상 동작하려면 head 태그에서 jquery-3.5.1.min.js 호출해 놓아야 함
-      $('#search').click(function(){
+      $('#search').click(function () {
         // [ JQuery 문법^^ ] input 태그에 사용자가 입력한 값
         const 입력한값 = $('#search-input').val()
 
         // [ Web API 문법 ] GET 요청과 동일한 기능을 하는 window.location.replace('/url') 코드로 현재 페이지 URL 값을 강제 변경시킴
-        
+
         // [ Javascript 문법 ] 철지난 기법이니 최신 문법 확인요 (즉, 문자 자료형 안에 변수 넣는 표기법)
         window.location.replace('/search?valueKeyword=' + 입력한값)
       })
@@ -51,125 +54,154 @@
       <ul class="list-group">
         <!-- [ EJS 문법 ] express의 응답.render 통해서 ejs로 넘어온 결과 데이터를 <% %>, <%= %> 문법으로 받아서 보여줌 -->
         <!-- EJS <% %> 문법으로 for문 개폐부를 감싸고 반복문 내부에서도 <%= %> 문법으로 데이터 보여줌-->
-        <% for (let i = 0; i < postResult.length; i++) { %>
-  
+        <% for (let i=0; i < postResult.length; i++) { %>
+
           <!--  -->
           <li class="list-group-item">
-  
+
             <!-- 삭제 버튼이 클릭 이벤트가 발생한 li 태그를 특정하고 식별하기 위해 EJS 문법 적용해 브라우저에 글번호 값을 직접 노출(?)하거나 html li태그 data-작명: "<%= %>" 속성(주의: 따옴표 필수)으로 숨겨서 동작시키거나 -->
-            
-            <p>글번호: <%= postResult[i]._id %></p>
-  
+
+            <p>글번호: <%= postResult[i]._id %>
+            </p>
+
             <!-- 혼자 해볼 것들 [완료] : 글목록 페이지에서 글제목 누르면 상세페이지로 이동시키기 -->
             <!-- [ YD 감격!! ] list.ejs 코드 내에서 상세페이지(detail.ejs) 진입할 수 있도록 하이퍼링크 연결하는 코드 문법으로 내가 시도해 본 a href="<%= %>" 형식이 맞나봄 -->
             <h4><a href="/detail/<%= postResult[i]._id %>">할일 제목: <%= postResult[i].제목 %></a></h4>
-            <p>할일 날짜: <%= postResult[i].날짜 %></p>
-            
+            <p>할일 날짜: <%= postResult[i].날짜 %>
+            </p>
+
             <!-- 주의: button 태그 눌러서 클릭 이벤트 발생하면 e.target.dataset.li-id 찾으려는 의도였음에도 data-listId 속성을 li 태그에 입력해서 클릭 이벤트 값 제대로 감지되지 않는 시행착오 겪었음-->
             <!-- 주의: ejs 파일 내에서 사용자가 클릭한 삭제 버튼에 부여된 _id를 식별하기 위해 data-창작명 문법을 사용하는 올바른 문법은 data-소문자(언더바 가능)= / 틀린 문법은 data-카멜케이스와 마이너스 기호와 콜론(data-list--Id:) -->
             <!-- [ 부트스트랩 문법 ] class명으로 btn btn-danger 부여시 빨간색 버튼 모양 만들어줌 -->
-            <button class="delete btn btn-danger" data-li_tag_data_id= "<%= postResult[i]._id %>">삭제</button>
+            <button class="delete btn btn-danger" data-li_tag_data_id="<%= postResult[i]._id %>">삭제</button>
             <a href="/edit/<%= postResult[i]._id %>"><button class="delete btn btn-secondary">수정</button></a>
-            
+
             <!-- [ HTML 문법^^ ] 채팅 버튼 만들고 이를 특정하기 위해 class="chat" 부여 -->
-            <button class="chat btn btn-info" data-li_tag_writer_id= "<%= postResult[i].작성자 %>">채팅</button>
+
+            <button class="chat btn btn-info" data-li_tag_writer_id="<%= postResult[i].작성자 %>">채팅 $.post()
+              개설</button>
+
+            <a href="/chat"><button class="btn-dark"> 내가 속한 채팅방 목록 페이지 입장 </button></a>
+
           </li>
-        <% } %>
+          <% } %>
       </ul>
     </div>
 
     <!-- [ JQuery 문법^^ ] <button class="chat">채팅</button> 을 클릭하면 ajax 요청하여 서버에 채팅당한사람(즉,작성자)id값(즉, _id)을 전달함 -->
     <script>
-      $('.chat').click(function(e){
+      $('.chat').click(function (e) {
         // [ AJAX 문법^^ ] $.ajax   /   $.post()   /   $.get() 
         // [ Javascript 문법^^ ] this 문법에 대한 차이가 function(){} 문법과 ()=>{} 문법 사이에 존재함(상세내용 확인요)
         // [ Javascript 문법^^ ] 프론트엔드단 자바스크립트 코드는 사용자가 위조/변조하기 쉬우므로 최소한의 정보로만 서버에 전송요(즉, 그 정보를 토대로 세부정보들은 서버 내에서 자체 검색 가능)
         // 내가 누른 요소(e.target)에 숨겨진 data-li_tag_writer_id 값을 가져와(dataset.li_tag_writer_id) 주세요
-        var writerId = e.target.dataset.li_tag_writer_id
-        $.post('/chatroom', {당한사람id : writerId}).then(() => {
-          console.log('채팅 버튼 클릭 이벤트 발생으로 채팅 당한사람id(즉, 작성자)', writerId)
+        let writerId = e.target.dataset.li_tag_writer_id
+
+        // $.post('/chatroom', { 당한사람id: writerId }).then(() => {
+        //   console.log('채팅 버튼 클릭 이벤트 발생으로 채팅 당한사람id(즉, 작성자)', writerId)
+        // })
+
+        $.ajax({
+          method: 'post',
+          url: '/chatroom',
+          data: {
+            당한사람id: writerId
+          }
         })
+          .done((res) => {
+            alert('EJS단 post 요청성공');
+
+            // window.location = "/chat";
+            if (res.result === 'redirect') {
+              window.location = `${res.url}`
+            }
+
+          }).fail((xhr, status, err) => {
+            alert('EJS단 post 요청실패')
+          })
       })
     </script>
 
-        <!-- 
+    <!-- 
         [ EJS / HTML 문법 ] 서버에 직접적으로 DELETE, PUT 요청 불가 (GET, POST 요청만 가능) 
         HTML 상에서 DELETE 요청을 위한 대안책: 
         (1) method-override 라이브러리 이용(Node JS환경, form에서 DELETE요청 가능해짐)
         (2) JavaScript AJAX 이용 (새로고침 없이 서버통신을 도와주는 JavaScript 문법)
         -->
-    
-        <!-- HTML에서 서버에 DELETE 요청 보내기 위해 JQuery 문법 기반으로 AJAX 요청 코드를 작성해야 함 JQuery Min 버전을 CDN으로 연동해야 하므로 부트스트랩 기본값인 JQuery Slim Min 연동 코드는 주석처리함  -->
-        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    
 
-        <!-- JQuery Min 버전(X: Slim Min) CDN 연동 후 JQuery 문법에 기반하여 AJAX 요청 구현(HTML에서 DELETE요청) -->
-        <script>
+    <!-- HTML에서 서버에 DELETE 요청 보내기 위해 JQuery 문법 기반으로 AJAX 요청 코드를 작성해야 함 JQuery Min 버전을 CDN으로 연동해야 하므로 부트스트랩 기본값인 JQuery Slim Min 연동 코드는 주석처리함  -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 
-          // list.ejs 페이지를 새로고침 할 때 마다 삭제 요청 발생하는 것이 아니라 삭제 버튼을 누를 때만 삭제 요청 동작하도록 JQuery 문법으로 click 이벤트 처리함
-          $('.delete').click(function(e){
 
-            // e.target은 지금 클릭한 것
-            // JQuery 환경에서의 this는 지금 이벤트 동작하는 곳 (JavaScript의 this와는 다른 뜻인가? 재확인요)
+    <!-- JQuery Min 버전(X: Slim Min) CDN 연동 후 JQuery 문법에 기반하여 AJAX 요청 구현(HTML에서 DELETE요청) -->
+    <script>
 
-            // 내가 누른 요소(e.target)에 숨겨진 data-li_tag_data_id 값을 가져와(dataset.li_tag_data_id) 주세요
-            let 글번호 = e.target.dataset.li_tag_data_id;
-            console.log('삭제 버튼 클릭 이벤트 글번호', 글번호);
+      // list.ejs 페이지를 새로고침 할 때 마다 삭제 요청 발생하는 것이 아니라 삭제 버튼을 누를 때만 삭제 요청 동작하도록 JQuery 문법으로 click 이벤트 처리함
+      $('.delete').click(function (e) {
 
-            // JQuery 환경에서의 this는 현재 이벤트가 동작하는 곳
-            let 사용자가클릭한것 = $(this)
-            
-            /*
-            // $.ajax({
-              method: 'DELETE',
-              url: '/delete/1',
-              })
-                // ▲ 이런 식으로 url parameter로 원하는 데이터를 전달할 수도 있겠네요. 
-                // 어떻게하든 정보만 전달된다면 상관은 없지만 delete 요청시엔 이게 약간 더 자주 쓰는 사용방법입니다.
-                // 원래 delete 요청으로 data를 전달하는게 일반적이진 않아서요 근데 보낼 정보가 길면 data로 전달해야죠 뭐 
-            */
-              
-            $.ajax({
-                // 서버에 새로고침 없이 DELETE 요청을 할거예요
-                method: 'DELETE',
-                // 요청할 경로
-                url: '/delete',
-                // 요청과 함께 보낼 데이터 (즉, 요청보낼 때 삭제할 게시물 번호 _id (즉, 사용자가 누른 삭제버튼의 번호 data-li_tag_data_id)를 함께 전송)
-                data: { _id: 글번호 }
-              }).done(function(결과){
-                // [ JQuery & AJAX 문법 ] $ajax.({ }).done 뜻은 AJAX DELETE 요청이 성공하면 done 이하를 실행해주세요
+        // e.target은 지금 클릭한 것
+        // JQuery 환경에서의 this는 지금 이벤트 동작하는 곳 (JavaScript의 this와는 다른 뜻인가? 재확인요)
 
-                console.log('$.ajax DELETE 요청 성공 to browser');
-                
-                // 페이지를 강제로 새로고침 해주세요 location.reload 라는 JQuery함수 사용요
-                // 삭제버튼을 누른 요소를 브라우저 화면에서 제거(또는 안보이게) 해주세요
-                // [ JQuery 문법 ] .parent()는 부모 요소 선택하는 메소드
-                // [ JQuery 문법 ] .fadeOut()은 JQuery 애니메이션 함수의 일종
-                사용자가클릭한것.parent('li').fadeOut();
-              }).fail(function(xhr, textStatus, errorThrown){
-                // 요청 실패시 브라우저단에도 실패했다고 알려주기 위한 코드
-                // [ JQuery & AJAX 문법 ] $.ajax( { } ).done( ).fail( ) 코드 입장에서는 내가 보낸 요청에 대해 서버단에서 처리 성공했는지 실패했는지 모름
-                
-                console.log('서버에서 요청 처리 실패');
-                console.log('------------------------------------')
-                console.log('xhr 에러 내용', xhr);
-                console.log('------------------------------------')
-                console.log('textStatus 응답코드', textStatus);
-                console.log('------------------------------------')
-                console.log('errorThrown 에러메시지', errorThrown);
-              })
+        // 내가 누른 요소(e.target)에 숨겨진 data-li_tag_data_id 값을 가져와(dataset.li_tag_data_id) 주세요
+        let 글번호 = e.target.dataset.li_tag_data_id;
+        console.log('삭제 버튼 클릭 이벤트 글번호', 글번호);
 
-          });
+        // JQuery 환경에서의 this는 현재 이벤트가 동작하는 곳
+        let 사용자가클릭한것 = $(this)
 
-        </script>
-      
+        /*
+        // $.ajax({
+          method: 'DELETE',
+          url: '/delete/1',
+          })
+            // ▲ 이런 식으로 url parameter로 원하는 데이터를 전달할 수도 있겠네요. 
+            // 어떻게하든 정보만 전달된다면 상관은 없지만 delete 요청시엔 이게 약간 더 자주 쓰는 사용방법입니다.
+            // 원래 delete 요청으로 data를 전달하는게 일반적이진 않아서요 근데 보낼 정보가 길면 data로 전달해야죠 뭐 
+        */
+
+        $.ajax({
+          // 서버에 새로고침 없이 DELETE 요청을 할거예요
+          method: 'DELETE',
+          // 요청할 경로
+          url: '/delete',
+          // 요청과 함께 보낼 데이터 (즉, 요청보낼 때 삭제할 게시물 번호 _id (즉, 사용자가 누른 삭제버튼의 번호 data-li_tag_data_id)를 함께 전송)
+          data: { _id: 글번호 }
+        }).done(function (결과) {
+          // [ JQuery & AJAX 문법 ] $ajax.({ }).done 뜻은 AJAX DELETE 요청이 성공하면 done 이하를 실행해주세요
+
+          console.log('$.ajax DELETE 요청 성공 to browser');
+
+          // 페이지를 강제로 새로고침 해주세요 location.reload 라는 JQuery함수 사용요
+          // 삭제버튼을 누른 요소를 브라우저 화면에서 제거(또는 안보이게) 해주세요
+          // [ JQuery 문법 ] .parent()는 부모 요소 선택하는 메소드
+          // [ JQuery 문법 ] .fadeOut()은 JQuery 애니메이션 함수의 일종
+          사용자가클릭한것.parent('li').fadeOut();
+        }).fail(function (xhr, textStatus, errorThrown) {
+          // 요청 실패시 브라우저단에도 실패했다고 알려주기 위한 코드
+          // [ JQuery & AJAX 문법 ] $.ajax( { } ).done( ).fail( ) 코드 입장에서는 내가 보낸 요청에 대해 서버단에서 처리 성공했는지 실패했는지 모름
+
+          console.log('서버에서 요청 처리 실패');
+          console.log('------------------------------------')
+          console.log('xhr 에러 내용', xhr);
+          console.log('------------------------------------')
+          console.log('textStatus 응답코드', textStatus);
+          console.log('------------------------------------')
+          console.log('errorThrown 에러메시지', errorThrown);
+        })
+
+      });
+
+    </script>
+
     <!-- Optional JavaScript; choose one of the two! -->
 
     <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
-    
+
     <!-- HTML에서 서버에 DELETE 요청 보내기 위해 JQuery 문법 기반으로 AJAX 요청 코드를 작성해야 함. JQuery Min 버전을 CDN으로 연동해야 하므로 부트스트랩 기본값인 JQuery Slim Min 연동 코드는 주석처리함  -->
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+      crossorigin="anonymous"></script>
 
     <!-- Option 2: Separate Popper and Bootstrap JS -->
     <!--
@@ -177,5 +209,6 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
     -->
-  </body>
+</body>
+
 </html>

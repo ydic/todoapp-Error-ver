@@ -1,24 +1,32 @@
-
 .chat-content {
   height: 450px;
   overflow-y: scroll;
   padding: 10px;
+  background-color: cadetblue;
 }
+
 .chat-content li {
   margin-top: 10px;
   list-style: none;
+  background-color: blueviolet;
 }
+
 .text-small {
   font-size: 12px;
   color: gray;
   margin-bottom: 0;
+  background-color: chocolate;
 }
+
 .chat-box {
   background: #eee;
   padding: 5px;
   border-radius: 5px;
   float: left;
+  background-color: crimson;
 }
+
 .mine {
   float: right;
-} 
+  background-color: darkgreen;
+}
